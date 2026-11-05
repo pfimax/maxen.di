@@ -63,6 +63,6 @@ The first version. Everything below is new, so there is no migration to do.
   native AOT publish, and a DocFX site on GitHub Pages.
 
 ### Known gaps
-- The native AOT publish has not been run yet. The compile step passes with no warnings, and the same sample published
-  with the IL trimmer runs correctly, but the CI job is the first real native build.
+- Native AOT is checked on Linux only (the CI job publishes the console sample and runs it). Windows and macOS builds
+  have not been tried.
 - The compile-time dependency graph (validating the graph during the build, not at startup) is not done.

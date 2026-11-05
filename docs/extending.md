@@ -67,8 +67,8 @@ The core library is analyzed for trimming and AOT (`IsAotCompatible`). Registrat
 inherently use reflection are marked `[RequiresUnreferencedCode]` so you are warned when you use them:
 assembly scanning, `[Inject]` properties and methods, interception, and binding options from dictionaries or
 configuration. Open-generic registrations work for closed types your app actually uses.
-The console sample publishes cleanly with the IL trimmer and runs. It is also set up for `PublishAot`; the native
-compile step passes with no warnings, but a finished native executable has not been run yet. The README has the exact status.
+The console sample publishes with native AOT and runs; a CI job does that on Linux with warnings treated as errors on
+every push. It also publishes cleanly with the IL trimmer.
 
 The source generator also writes constructor calls for the types you register in code and stores them in
 `GeneratedActivators`. The container prefers them over compiled expression trees, which matters most on native AOT.

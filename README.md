@@ -311,10 +311,9 @@ reflection are marked `[RequiresUnreferencedCode]`: assembly scanning, `[Inject]
 interception by `DispatchProxy`, and binding options from dictionaries or configuration. Open generics work for closed
 types your app uses.
 
-What has been checked: the console sample publishes with the IL trimmer (`PublishTrimmed`) with no warnings and runs
-correctly, and the native AOT compile step (ILC) finishes with no warnings. What has **not** been checked is a finished
-native executable, because the machine this was developed on has no C++ linker tools. The CI workflow has a job that
-does the full publish and runs the result on Linux. Until that job is green, treat "works under native AOT" as unproven.
+What has been checked: the console sample publishes with native AOT on Linux with warnings treated as errors, and the
+resulting executable runs. A CI job does this on every push. The same sample also publishes with the IL trimmer
+(`PublishTrimmed`) with no warnings. Not checked: a native build on Windows or macOS.
 
 ## Contributing and releasing
 

@@ -45,7 +45,7 @@ These are the things Maxen.DI does that the others do not do out of the box.
 | Dependency graph as Mermaid, DOT, text or JSON, diffed between builds or against a saved baseline | `maxen-di` tool | no | no | `ToolTests` |
 | Built-in traces and metrics under one name (`Maxen.DI`) | yes | no | no | `TelemetryTests`, `samples/Maxen.DI.Samples.OpenTelemetry` |
 | Health endpoint with graph and validation result | `MapMaxenDiagnostics()` | no | no | `AspNetCoreEndToEndTests` |
-| Trim and native AOT friendly core | analyzers on, 0 warnings; trimmed sample runs; native publish is a CI job | yes | limited (reflection-heavy) | CI `aot` job |
+| Trim and native AOT friendly core | analyzers on, 0 warnings; native AOT sample published and run in CI | yes | limited (reflection-heavy) | CI `aot` job |
 
 ## Correctness evidence
 
