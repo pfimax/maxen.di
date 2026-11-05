@@ -11,3 +11,4 @@ TestResults/
 *.suo
 .idea/
 coverage/
+.serena/

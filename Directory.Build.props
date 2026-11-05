@@ -6,7 +6,7 @@
     <Authors>pfimax</Authors>
     <Company>pfimax</Company>
     <Copyright>Copyright (c) pfimax</Copyright>
-    <PackageTags>dependency-injection;di;ioc;container;extensible</PackageTags>
+    <PackageTags>dependency-injection;di;ioc;container;extensible;source-generator;analyzers;native-aot;aspnetcore</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- MIT, copyright held by pfimax. -->

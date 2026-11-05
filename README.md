@@ -15,7 +15,7 @@ change almost everything about how it behaves.
 - **A good citizen.** Run it behind `Microsoft.Extensions.DependencyInjection`, the Generic Host and ASP.NET Core. It passes
   Microsoft's own conformance suite, so the rest of your stack keeps working.
 - **Honest about speed.** Singletons and repeat scoped lookups cost tens of nanoseconds; there is a
-  [comparison page](docs/comparison.md) with numbers, including the places where Microsoft's container is faster.
+  [comparison page](https://pfimax.github.io/maxen.di/docs/comparison.html) with numbers, including the places where Microsoft's container is faster.
 
 Targets `net8.0`, `net9.0` and `net10.0`. Root namespace: `Maxen.DI`.
 
@@ -54,7 +54,7 @@ builder.RegisterGeneratedServices();   // no reflection at startup
 | A pull request changes the dependency graph by accident | `maxen-di diff` fails the build |
 | "Why did it pick that implementation?" | `maxen-di explain`, `ResolutionTrace`, helpful "did you mean" errors |
 
-Every diagnostic is described, with the fix, in [docs/diagnostics.md](docs/diagnostics.md).
+Every diagnostic is described, with the fix, in [docs/diagnostics.md](https://pfimax.github.io/maxen.di/docs/diagnostics.html).
 
 ## Install
 
@@ -67,11 +67,11 @@ Every diagnostic is described, with the fix, in [docs/diagnostics.md](docs/diagn
 
 ## Where to go next
 
-- **See it work:** [samples/](samples/README.md) has a runnable example for every feature, one for the source generator,
+- **See it work:** [samples/](https://github.com/pfimax/maxen.di/blob/main/samples/README.md) has a runnable example for every feature, one for the source generator,
   one each for the Generic Host, ASP.NET Core and OpenTelemetry.
-- **Learn it:** [getting started](docs/getting-started.md), [extending](docs/extending.md),
-  [migrating](docs/migrating.md) from Microsoft DI or Autofac.
-- **Check it:** [diagnostics reference](docs/diagnostics.md) and the [comparison with Microsoft DI and Autofac](docs/comparison.md).
+- **Learn it:** [getting started](https://pfimax.github.io/maxen.di/docs/getting-started.html), [extending](https://pfimax.github.io/maxen.di/docs/extending.html),
+  [migrating](https://pfimax.github.io/maxen.di/docs/migrating.html) from Microsoft DI or Autofac.
+- **Check it:** [diagnostics reference](https://pfimax.github.io/maxen.di/docs/diagnostics.html) and the [comparison with Microsoft DI and Autofac](https://pfimax.github.io/maxen.di/docs/comparison.html).
 
 Repository layout: `src/` (libraries, generator, code fixes, tool), `tests/`, `benchmarks/`, `samples/`, `docs/`, `scripts/`.
 
@@ -216,7 +216,7 @@ Classes marked `[Service]` become plain `new Foo(...)` registrations at compile 
   optional parameters) get a warning (`MAXEN001`/`MAXEN002`), and a wrong `ServiceType` is an error (`MAXEN003`). Those
   can still be registered with `RegisterAttributed` at run time.
 
-The analyzers in the same package are covered in the [diagnostics reference](docs/diagnostics.md);
+The analyzers in the same package are covered in the [diagnostics reference](https://pfimax.github.io/maxen.di/docs/diagnostics.html);
 `samples/Maxen.DI.Samples.Generators` shows it all running.
 
 ## The command line tool
@@ -298,7 +298,7 @@ Short-job BenchmarkDotNet figures from one machine (Core i5-10400T, .NET 10). Yo
 
 Maxen.DI is not the fastest container for every shape of work. Creating a scope and building a fresh graph takes roughly
 1.3 times as long as Microsoft's, and a plain singleton lookup about twice. The extra time buys the checking and the
-extension points. See the [comparison](docs/comparison.md) for the full picture.
+extension points. See the [comparison](https://pfimax.github.io/maxen.di/docs/comparison.html) for the full picture.
 
 Track regressions with `scripts/compare-benchmarks.ps1` (run the benchmarks with `--exporters json`; use `-Update`
 to record a new `benchmarks/baseline.json`). The `Benchmarks` workflow runs it on demand.
@@ -328,4 +328,4 @@ resulting executable runs. A CI job does this on every push. The same sample als
   version and pushes to NuGet (through NuGet Trusted Publishing, so no API key is stored; setup is described at the top of the workflow file). A tag with a suffix (`v1.0.0-preview.1`) is
   published as a prerelease.
 
-See [CHANGELOG.md](CHANGELOG.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CHANGELOG.md](https://github.com/pfimax/maxen.di/blob/main/CHANGELOG.md) and [CONTRIBUTING.md](https://github.com/pfimax/maxen.di/blob/main/CONTRIBUTING.md).
