@@ -9,4 +9,5 @@
 - name: Diagnostics
   href: docs/diagnostics.md
 - name: API reference
-  href: api/index.md
+  href: api/
+  homepage: api/index.md

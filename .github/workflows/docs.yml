@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "api/**"
+      - "images/**"
+      - "template/**"
       - "src/**"
       - "toc.yml"
       - "index.md"

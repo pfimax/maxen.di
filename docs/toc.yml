@@ -1,0 +1,14 @@
+- name: Learn
+  items:
+    - name: Getting started
+      href: getting-started.md
+    - name: Extending
+      href: extending.md
+    - name: Migrating
+      href: migrating.md
+- name: Reference
+  items:
+    - name: Diagnostics
+      href: diagnostics.md
+    - name: Comparison
+      href: comparison.md

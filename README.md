@@ -1,4 +1,8 @@
-# Maxen.DI
+![Maxen.DI: know what is wrong before your users do](https://raw.githubusercontent.com/pfimax/maxen.di/main/images/banner.png)
+
+[![NuGet](https://img.shields.io/nuget/v/Maxen.DI?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI) [![CI](https://github.com/pfimax/maxen.di/actions/workflows/ci.yml/badge.svg)](https://github.com/pfimax/maxen.di/actions/workflows/ci.yml) ![.NET 8, 9, 10](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
+
+[Documentation](https://pfimax.github.io/maxen.di/) · [NuGet](https://www.nuget.org/packages/Maxen.DI) · [Samples](https://github.com/pfimax/maxen.di/tree/main/samples) · [Changelog](https://github.com/pfimax/maxen.di/blob/main/CHANGELOG.md)
 
 **A dependency injection container that tells you what is wrong before your users do.**
 
@@ -16,6 +20,8 @@ change almost everything about how it behaves.
   Microsoft's own conformance suite, so the rest of your stack keeps working.
 - **Honest about speed.** Singletons and repeat scoped lookups cost tens of nanoseconds; there is a
   [comparison page](https://pfimax.github.io/maxen.di/docs/comparison.html) with numbers, including the places where Microsoft's container is faster.
+
+![Analyzers in your editor, validation at startup, a gate in CI](https://raw.githubusercontent.com/pfimax/maxen.di/main/images/three-places.png)
 
 Targets `net8.0`, `net9.0` and `net10.0`. Root namespace: `Maxen.DI`.
 

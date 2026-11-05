@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none">
+  <title>Maxen.DI</title>
+  <path d="M7 21V9l7 8 7-8v12" stroke="#12A56B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="7" cy="7" r="2.4" fill="#12A56B"/>
+  <circle cx="21" cy="7" r="2.4" fill="#12A56B"/>
+</svg>

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Maxen.DI: three places</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  html, body { margin: 0; background: #0a0d12; }
+  .wrap { width: 1280px; box-sizing: border-box; padding: 48px 56px; font-family: "Inter", "Segoe UI", sans-serif; color: #e6eaf0; background: #0a0d12; display: flex; gap: 20px; }
+  .col { flex: 1; min-width: 0; background: #0f141a; border: 1px solid #1f2733; border-radius: 14px; padding: 28px; }
+  small { font-family: "JetBrains Mono", monospace; font-size: 14px; color: #7cf0b5; }
+  h3 { margin: 12px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  p { margin: 10px 0 0; font-size: 17px; line-height: 1.5; color: #9aa5b4; }
+  code { display: block; margin-top: 22px; background: #0a0d12; border: 1px solid #1b222c; border-radius: 8px; padding: 13px 12px; font-family: "JetBrains Mono", monospace; font-size: 12px; color: #d5dbe5; white-space: nowrap; overflow: hidden; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="col"><small>01 &middot; while you type</small><h3>Analyzers in your editor</h3><p>A missing registration, a captive dependency or a leaking disposable shows up as a warning. Many come with a one-click fix.</p><code>MAXEN006  Constructor needs 'Database'</code></div>
+  <div class="col"><small>02 &middot; at startup</small><h3>Validation when you build</h3><p>Build() can refuse to start and list every problem at once, instead of failing on the first request.</p><code>builder.Options.ValidateOnBuild = true;</code></div>
+  <div class="col"><small>03 &middot; in CI</small><h3>A gate in your pipeline</h3><p>The maxen-di tool validates a built assembly and fails the build when the dependency graph changes by accident.</p><code>maxen-di diff old.dll new.dll</code></div>
+</div>
+</body>
+</html>
