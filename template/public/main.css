@@ -127,10 +127,12 @@ pre .hljs-comment { color: var(--mx-code-comment); }
 pre .hljs-string { color: var(--mx-code-string); }
 
 table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.95rem; }
-article table { display: block; overflow-x: auto; border: 1px solid var(--mx-border); border-radius: 12px; }
-article table th { background: var(--mx-surface); color: var(--mx-muted); font-weight: 600; text-align: left; padding: 0.75rem 1.1rem; border-bottom: 1px solid var(--mx-border); white-space: nowrap; }
-article table td { padding: 0.75rem 1.1rem; border-top: 1px solid var(--mx-border); vertical-align: top; }
-article table tr:first-child td { border-top: 0; }
+.mx-table-wrap { overflow-x: auto; border: 1px solid var(--mx-border); border-radius: 12px; margin: 1.25rem 0; }
+.mx-table-wrap table { display: table; width: 100%; margin: 0; border: 0; }
+article table th { background: var(--mx-surface); color: var(--mx-muted); font-weight: 600; text-align: left; padding: 0.75rem 1.1rem; border: 0 !important; border-bottom: 1px solid var(--mx-border) !important; white-space: nowrap; }
+article table td { padding: 0.75rem 1.1rem; border: 0 !important; border-top: 1px solid var(--mx-border) !important; vertical-align: top; }
+article table tbody tr:first-child td { border-top: 0 !important; }
+article table tbody tr:hover td { background: var(--mx-surface); }
 article table td code { white-space: nowrap; }
 
 blockquote { border-left: 0; }
@@ -159,7 +161,7 @@ body[data-layout="landing"] .affix, body[data-layout="landing"] .toc-offcanvas, 
 .mx-hero-visual { flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .mx-pill { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--mx-border); border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; color: var(--mx-muted); background: var(--mx-surface); }
 .mx-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mx-accent); }
-.mx-title { margin: 24px 0 0 !important; font-size: clamp(2.4rem, 5vw, 4rem) !important; line-height: 1.04 !important; letter-spacing: -0.03em !important; font-weight: 700 !important; }
+.mx-title { margin: 24px 0 0 !important; font-size: clamp(2.4rem, 4.4vw, 3.6rem) !important; text-wrap: balance; line-height: 1.06 !important; letter-spacing: -0.03em !important; font-weight: 700 !important; }
 .mx-lead { margin: 24px 0 0; font-size: 1.25rem; color: var(--mx-muted); max-width: 540px; line-height: 1.5; }
 .mx-install { margin-top: 36px; display: inline-flex; max-width: 100%; align-items: center; background: var(--mx-surface); border: 1px solid var(--mx-border); border-radius: 10px; padding: 14px 18px; font-family: var(--mx-mono); font-size: 0.95rem; overflow-x: auto; white-space: nowrap; }
 .mx-install span { color: var(--mx-faint); margin-right: 0.6rem; }
@@ -209,6 +211,25 @@ body[data-layout="landing"] .affix, body[data-layout="landing"] .toc-offcanvas, 
 .mx-compare table { display: table; width: 100%; min-width: 640px; border: 0; border-radius: 0; }
 .mx-compare th:nth-child(2) { color: var(--mx-accent); }
 .mx-compare td:nth-child(n+3) { color: var(--mx-muted); }
+/* docfx draws a border on every cell; keep only the horizontal rules between rows. */
+.mx-compare th, .mx-compare td { border-left: 0 !important; border-right: 0 !important; padding: 16px 22px; }
+.mx-compare th { border-top: 0 !important; background: var(--mx-surface-2); }
+.mx-compare td { border-top: 1px solid var(--mx-border) !important; border-bottom: 0 !important; }
+.mx-compare td:nth-child(n+2), .mx-compare th:nth-child(n+2) { width: 15%; }
+.mx-compare td:nth-child(2) { color: var(--mx-text); font-weight: 600; }
+.mx-compare tbody tr:hover td { background: var(--mx-surface); }
+
+/* Quiet scrollbars on code, so a long line does not draw a heavy bar across the card. */
+pre code, .mx-install, .mx-compare, .mx-table-wrap { scrollbar-width: thin; scrollbar-color: var(--mx-border-strong) transparent; }
+pre code::-webkit-scrollbar, .mx-install::-webkit-scrollbar, .mx-compare::-webkit-scrollbar, .mx-table-wrap::-webkit-scrollbar { height: 8px; }
+pre code::-webkit-scrollbar-thumb, .mx-install::-webkit-scrollbar-thumb, .mx-compare::-webkit-scrollbar-thumb, .mx-table-wrap::-webkit-scrollbar-thumb { background: var(--mx-border-strong); border-radius: 8px; }
+pre code::-webkit-scrollbar-track, .mx-install::-webkit-scrollbar-track, .mx-compare::-webkit-scrollbar-track, .mx-table-wrap::-webkit-scrollbar-track { background: transparent; }
+
+/* A soft glow behind the hero, and lift on the cards, so the page is not flat. */
+body[data-layout="landing"] { background: radial-gradient(ellipse 70% 520px at 25% 60px, color-mix(in srgb, var(--mx-accent) 8%, transparent), transparent 70%) no-repeat, var(--mx-bg); }
+.mx-way, .mx-card, .mx-facts { transition: border-color 0.15s ease; }
+.mx-way:hover, .mx-card:hover { border-color: var(--mx-border-strong); }
+.mx-section:last-child { margin-bottom: 48px; }
 
 @media (max-width: 767px) {
   body[data-layout="landing"] > main { padding-left: 20px; padding-right: 20px; }
@@ -217,5 +238,38 @@ body[data-layout="landing"] .affix, body[data-layout="landing"] .toc-offcanvas, 
   .mx-section h2 { font-size: 1.75rem !important; }
   .mx-fact { padding: 20px; flex-basis: 45%; }
   .mx-fact strong { font-size: 1.9rem; }
+  .mx-card pre code { font-size: 0.76rem; padding: 14px; }
   article h1 { font-size: 2rem; }
+}
+
+/* Long generic signatures in the API lists have no spaces to break on, which pushed phones sideways. */
+article a.xref, article .xref, article dd, article .inheritedMembers li, article .extensionMethods li, article h1 { overflow-wrap: anywhere; }
+
+/* ---------- search results ---------- */
+#search-results { max-width: 860px; margin: 0 auto; padding: 28px 20px 64px; }
+#search-results .search-list { color: var(--mx-muted); font-size: 0.9rem; margin-bottom: 8px; }
+#search-results .sr-item { padding: 20px 0; border-top: 1px solid var(--mx-border); }
+#search-results .item-title { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+#search-results .item-title a { color: var(--mx-text); }
+#search-results .item-title a:hover { color: var(--mx-accent); text-decoration: none; }
+#search-results .item-title b { color: var(--mx-accent); font-weight: 700; }
+#search-results .item-href { margin-top: 2px; font-family: var(--mx-mono); font-size: 0.75rem; color: var(--mx-faint) !important; overflow-wrap: anywhere; }
+#search-results .item-href b { color: var(--mx-muted) !important; font-weight: 500; }
+#search-results .item-brief { margin-top: 8px; font-size: 0.92rem; line-height: 1.55; color: var(--mx-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#search-results .item-brief b { color: var(--mx-text); font-weight: 600; }
+
+@media (max-width: 991px) {
+  .navbar .nav-link { padding-top: 10px; padding-bottom: 10px; }
+}
+
+/* Keep each top-bar label on one line. Between tablet and small desktop widths there is not room for
+   every link next to the search box, so the two reference pages drop out; they stay in the sidebar. */
+.navbar .nav-link { white-space: nowrap; }
+@media (min-width: 768px) and (max-width: 1099px) {
+  .navbar .nav-link { font-size: 0.9rem; padding-left: 0.6rem; padding-right: 0.6rem; }
+  .navbar-nav > li:nth-child(4), .navbar-nav > li:nth-child(5) { display: none; }
+}
+@media (min-width: 768px) and (max-width: 899px) {
+  .navbar-nav > li:nth-child(3) { display: none; }
+  #search-query { min-width: 120px; }
 }

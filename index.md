@@ -17,7 +17,7 @@ layout: landing
 <div class="mx-hero-visual">
 <div class="mx-card">
 <div class="mx-card-head"><span>Program.cs</span><span class="mx-warn-tag">1 warning</span></div>
-<pre><code><span class="hljs-comment">// The report service reads the signed-in user, which lives for one request.</span>
+<pre><code><span class="hljs-comment">// Reads the signed-in user: one request.</span>
 builder.<span class="hljs-keyword">Register</span>&lt;<span class="hljs-type">ReportService</span>&gt;()
        .<span class="mx-squiggle">AsSingleton</span>();</code></pre>
 <div class="mx-diagnostic"><b>MAXEN005</b><span>A singleton cannot depend on a scoped service. Change its lifetime.</span></div>
@@ -35,15 +35,15 @@ builder.<span class="hljs-keyword">Register</span>&lt;<span class="hljs-type">Re
 <div class="mx-fact"><strong>3</strong><span>target frameworks</span></div>
 <div class="mx-fact"><strong>4</strong><span>NuGet packages</span></div>
 <div class="mx-fact"><strong>9</strong><span>analyzer diagnostics</span></div>
-<div class="mx-fact"><strong>89</strong><span>Microsoft conformance tests passing</span></div>
+<div class="mx-fact"><strong>89</strong><span>conformance tests passing</span></div>
 </div>
 <section class="mx-section">
 <h2>Mistakes get found in three places</h2>
 <p class="mx-section-lead">Pick the earliest one that fits. Each catches the same problems: a missing registration, a loop, a singleton holding a per-request service.</p>
 <div class="mx-grid">
-<div class="mx-way"><small>01 &middot; while you type</small><h3>Analyzers in your editor</h3><p>A missing registration, a captive dependency or a leaking disposable shows up as a warning. Many come with a one-click fix.</p><pre><code>MAXEN006  Constructor needs 'Database'</code></pre></div>
-<div class="mx-way"><small>02 &middot; at startup</small><h3>Validation when you build</h3><p>Build() can refuse to start and list every problem at once, instead of failing on the first request that needs the service.</p><pre><code>builder.Options.ValidateOnBuild = true;</code></pre></div>
-<div class="mx-way"><small>03 &middot; in CI</small><h3>A gate in your pipeline</h3><p>The maxen-di tool validates a built assembly and fails the build when the dependency graph changes by accident.</p><pre><code>maxen-di diff old.dll new.dll</code></pre></div>
+<div class="mx-way"><small>01 &middot; while you type</small><h3>Analyzers in your editor</h3><p>A missing registration, a captive dependency or a leaking disposable shows up as a warning. Many come with a one-click fix.</p><pre><code class="nohighlight">MAXEN006  Constructor needs 'Database'</code></pre></div>
+<div class="mx-way"><small>02 &middot; at startup</small><h3>Validation when you build</h3><p>Build() can refuse to start and list every problem at once, instead of failing on the first request that needs the service.</p><pre><code class="nohighlight">builder.Options.ValidateOnBuild = true;</code></pre></div>
+<div class="mx-way"><small>03 &middot; in CI</small><h3>A gate in your pipeline</h3><p>The maxen-di tool validates a built assembly and fails the build when the dependency graph changes by accident.</p><pre><code class="nohighlight">maxen-di diff old.dll new.dll</code></pre></div>
 </div>
 </section>
 <section class="mx-section">
