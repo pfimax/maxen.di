@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Maxen.DI.Samples.Features/Maxen.DI.Samples.Features.csproj" />
+    <Project Path="samples/Maxen.DI.Samples.Generators/Maxen.DI.Samples.Generators.csproj" />
+    <Project Path="samples/Maxen.DI.Samples.GenericHost/Maxen.DI.Samples.GenericHost.csproj" />
+    <Project Path="samples/Maxen.DI.Samples.Console/Maxen.DI.Samples.Console.csproj" />
+    <Project Path="samples/Maxen.DI.Samples.WebApi/Maxen.DI.Samples.WebApi.csproj" />
+    <Project Path="samples/Maxen.DI.Samples.OpenTelemetry/Maxen.DI.Samples.OpenTelemetry.csproj" />
+  </Folder>
+  <Project Path="src/Maxen.DI.CodeFixes/Maxen.DI.CodeFixes.csproj" />
+  <Project Path="benchmarks/Maxen.DI.Benchmarks/Maxen.DI.Benchmarks.csproj" />
+  <Project Path="src/Maxen.DI.Extensions.AspNetCore/Maxen.DI.Extensions.AspNetCore.csproj" />
+  <Project Path="src/Maxen.DI.Extensions.DependencyInjection/Maxen.DI.Extensions.DependencyInjection.csproj" />
+  <Project Path="src/Maxen.DI.Generators/Maxen.DI.Generators.csproj" />
+  <Project Path="tests/Maxen.DI.Specification.Tests/Maxen.DI.Specification.Tests.csproj" />
+  <Project Path="tests/Maxen.DI.Tests/Maxen.DI.Tests.csproj" />
+  <Project Path="src/Maxen.DI.Tool/Maxen.DI.Tool.csproj" />
+  <Project Path="src/Maxen.DI/Maxen.DI.csproj" />
+</Solution>

@@ -1,0 +1,29 @@
+<Project>
+
+  <!-- Shared settings for every project in the solution. -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Authors>pfimax</Authors>
+    <Company>pfimax</Company>
+    <Copyright>Copyright (c) pfimax</Copyright>
+    <PackageTags>dependency-injection;di;ioc;container;extensible</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- MIT, copyright held by pfimax. -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <!-- Symbol packages let people step into the library while debugging. -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Where the code lives; NuGet shows these on the package page and uses them for source link. -->
+    <RepositoryUrl>https://github.com/pfimax/maxen.di</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/pfimax/maxen.di</PackageProjectUrl>
+
+    <!-- Only the projects that are meant to ship opt in to packing. -->
+    <IsPackable>false</IsPackable>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>

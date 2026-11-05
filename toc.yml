@@ -1,0 +1,12 @@
+- name: Getting started
+  href: docs/getting-started.md
+- name: Extending
+  href: docs/extending.md
+- name: Migrating
+  href: docs/migrating.md
+- name: Comparison
+  href: docs/comparison.md
+- name: Diagnostics
+  href: docs/diagnostics.md
+- name: API reference
+  href: api/index.md

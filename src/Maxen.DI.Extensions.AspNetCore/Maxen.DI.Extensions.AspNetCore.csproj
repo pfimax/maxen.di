@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    
+    <Description>One-line Maxen.DI setup for ASP.NET Core minimal APIs and MVC, plus helpers to reach the request's Maxen scope.</Description>
+    <IsPackable>true</IsPackable>
+    <PackageId>Maxen.DI.Extensions.AspNetCore</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\Maxen.DI.Extensions.DependencyInjection\Maxen.DI.Extensions.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>

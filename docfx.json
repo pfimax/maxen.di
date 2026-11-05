@@ -1,0 +1,31 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": ".",
+          "files": [
+            "src/Maxen.DI/Maxen.DI.csproj",
+            "src/Maxen.DI.Extensions.DependencyInjection/Maxen.DI.Extensions.DependencyInjection.csproj",
+            "src/Maxen.DI.Extensions.AspNetCore/Maxen.DI.Extensions.AspNetCore.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "properties": { "TargetFramework": "net10.0" }
+    }
+  ],
+  "build": {
+    "content": [
+      { "files": ["api/**.yml", "api/index.md"] },
+      { "files": ["docs/**.md", "toc.yml", "index.md"] }
+    ],
+    "resource": [],
+    "output": "_site",
+    "globalMetadata": {
+      "_appTitle": "Maxen.DI",
+      "_enableSearch": true
+    },
+    "template": ["default", "modern"]
+  }
+}

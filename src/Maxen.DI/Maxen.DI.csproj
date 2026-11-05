@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Maxen.DI</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Keeps the trim/AOT analyzers on so new reflection can't slip in unnoticed. Features that
+         inherently need reflection (scanning, interception, property/method injection) are marked
+         [RequiresUnreferencedCode] so users of them are warned instead of the whole library. -->
+    <IsAotCompatible>true</IsAotCompatible>
+    
+
+    <IsPackable>true</IsPackable>
+    <PackageId>Maxen.DI</PackageId>
+    <Description>Maxen.DI - a highly extensible dependency injection framework: pluggable lifetimes, middleware pipeline, decorators, interceptors, child containers, validation and a source generator.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <!--
+    The source generator ships inside this package (under analyzers/), so anyone who installs
+    Maxen.DI gets it automatically. The project reference only makes sure it is built first.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\Maxen.DI.Generators\Maxen.DI.Generators.csproj"
+                      ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="..\Maxen.DI.Generators\bin\$(Configuration)\netstandard2.0\Maxen.DI.Generators.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <!-- Quick fixes for the analyzer warnings travel the same way. -->
+    <ProjectReference Include="..\Maxen.DI.CodeFixes\Maxen.DI.CodeFixes.csproj"
+                      ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="..\Maxen.DI.CodeFixes\bin\$(Configuration)\netstandard2.0\Maxen.DI.CodeFixes.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Maxen.DI.Tests" />
+  </ItemGroup>
+
+</Project>

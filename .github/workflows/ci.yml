@@ -1,0 +1,97 @@
+# Builds, tests and packs on every push and pull request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore -p:ContinuousIntegrationBuild=true
+
+      # Coverage is collected on the newest framework only; the other targets run the same tests without it.
+      - name: Test
+        env:
+          MAXEN_EXHAUSTIVE: "1"
+        run: dotnet test -c Release --no-build --collect:"XPlat Code Coverage" --results-directory coverage -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      # The samples are documentation that has to keep working: every feature sample must run without throwing.
+      - name: Run the feature samples
+        run: |
+          dotnet run -c Release --no-build --project samples/Maxen.DI.Samples.Features -- all
+          dotnet run -c Release --no-build --project samples/Maxen.DI.Samples.Generators
+          dotnet run -c Release --no-build --project samples/Maxen.DI.Samples.GenericHost
+          dotnet run -c Release --no-build --project samples/Maxen.DI.Samples.OpenTelemetry
+
+      - name: Coverage summary
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          reportgenerator -reports:"coverage/**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:"MarkdownSummaryGithub;Html" -assemblyfilters:"+Maxen.DI*;-Maxen.DI.Tests;-Maxen.DI.Benchmarks"
+          cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage-report
+
+      - name: Pack
+        run: dotnet pack -c Release --no-build -o artifacts
+
+      # Handy for trying a build before it is released.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: artifacts/*.nupkg
+
+  # Installs the packed packages into a clean project and checks the analyzers, generator and tool really ship and work.
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Verify the packages
+        shell: pwsh
+        run: ./scripts/verify-packages.ps1
+
+  # The full native AOT publish, which the Windows dev machine can't always do. Fails on any trim/AOT warning
+  # because the sample is meant to prove the library stays AOT-clean, then runs the produced executable.
+  aot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Native AOT prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Publish the console sample with native AOT
+        run: dotnet publish samples/Maxen.DI.Samples.Console -c Release -r linux-x64 -o aot-out -p:TreatWarningsAsErrors=true
+
+      - name: Run it
+        run: ./aot-out/Maxen.DI.Samples.Console

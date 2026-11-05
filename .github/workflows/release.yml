@@ -1,0 +1,57 @@
+# Publishes to NuGet when a version tag such as v1.2.0 is pushed.
+# Uses NuGet Trusted Publishing, so there is no API key to store: GitHub proves who this run is, and NuGet hands back a
+# key that works for a few minutes. One-time setup, on nuget.org: Account > Trusted Publishing > add a policy for the
+# repository pfimax/maxen.di, workflow file release.yml. Then add a repository variable NUGET_USER holding your
+# nuget.org profile name (the user name, not your email address).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # to create the GitHub release
+      id-token: write   # lets the run prove its identity to nuget.org
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      # The tag is the source of truth for the version, so a package can't be released under the wrong number.
+      - name: Work out the version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: dotnet build -c Release -p:Version=$VERSION -p:ContinuousIntegrationBuild=true
+
+      - name: Test
+        run: dotnet test -c Release --no-build
+
+      - name: Pack
+        run: dotnet pack -c Release --no-build -p:Version=$VERSION -o artifacts
+
+      - name: Get a short-lived NuGet key
+        id: nuget
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Push to NuGet
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      # A version with a suffix (1.0.0-preview.1) is a prerelease on GitHub too.
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flag=""
+          if [[ "$VERSION" == *-* ]]; then flag="--prerelease"; fi
+          gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg --generate-notes $flag

@@ -1,0 +1,36 @@
+# Compares the hot paths with benchmarks/baseline.json. Shared CI machines are noisy, so the tolerance is
+# wide: this catches a real regression (something twice as slow), not a few percent of jitter.
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1"
+  pull_request:
+    paths:
+      - "src/Maxen.DI/**"
+      - "benchmarks/**"
+      - "scripts/compare-benchmarks.ps1"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run benchmarks
+        run: dotnet run -c Release --project benchmarks/Maxen.DI.Benchmarks -- --filter "*" --job short --exporters json
+
+      - name: Compare with the baseline
+        shell: pwsh
+        run: ./scripts/compare-benchmarks.ps1 -Tolerance 0.5
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: benchmark-results
+          path: BenchmarkDotNet.Artifacts/results/

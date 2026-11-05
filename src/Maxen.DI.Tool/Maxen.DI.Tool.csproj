@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <Description>Command line tool for Maxen.DI: prints the dependency graph of the modules in an assembly and checks it for problems.</Description>
+
+    <!-- Installed with: dotnet tool install -g Maxen.DI.Tool, then run: maxen-di graph MyApp.dll -->
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>maxen-di</ToolCommandName>
+    <PackageId>Maxen.DI.Tool</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Maxen.DI\Maxen.DI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Maxen.DI.Tests" />
+  </ItemGroup>
+
+</Project>
