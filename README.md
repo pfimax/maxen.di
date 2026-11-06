@@ -346,7 +346,7 @@ resulting executable runs. A CI job does this on every push. The same sample als
   dotnet run -c Release --project benchmarks/Maxen.DI.Benchmarks -- --filter "*"
   ```
 - **Releasing:** pushing a tag such as `v1.2.0` runs `.github/workflows/release.yml`, which builds, tests, packs with that
-  version and pushes to NuGet (through NuGet Trusted Publishing, so no API key is stored; setup is described at the top of the workflow file). A tag with a suffix (`v1.0.0-preview.1`) is
+  version, checks the packages in a clean project (`scripts/verify-packages.ps1`) and only then pushes to NuGet (through NuGet Trusted Publishing, so no API key is stored; setup is described at the top of the workflow file). A tag with a suffix (`v1.0.0-preview.1`) is
   published as a prerelease.
 
 See [CHANGELOG.md](https://github.com/pfimax/maxen.di/blob/main/CHANGELOG.md) and [CONTRIBUTING.md](https://github.com/pfimax/maxen.di/blob/main/CONTRIBUTING.md).

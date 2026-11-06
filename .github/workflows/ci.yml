@@ -59,6 +59,26 @@ jobs:
           name: packages
           path: artifacts/*.nupkg
 
+  # The same build and tests on Windows. File locking, paths and line endings differ from Linux, and a test that passed on
+  # one and failed on the other has already happened. Exhaustive mode and coverage stay on the Linux job to keep this quick.
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Build
+        run: dotnet build -c Release -p:ContinuousIntegrationBuild=true
+
+      - name: Test
+        run: dotnet test -c Release --no-build
+
   # Installs the packed packages into a clean project and checks the analyzers, generator and tool really ship and work.
   packages:
     runs-on: ubuntu-latest

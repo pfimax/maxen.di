@@ -38,6 +38,14 @@ jobs:
       - name: Pack
         run: dotnet pack -c Release --no-build -p:Version=$VERSION -o artifacts
 
+      # A version on NuGet can't be taken back, so the packages are installed into a clean project and checked first:
+      # analyzers, generator, code fixes and the tool all have to work from the package, not just from the repository.
+      # It runs after Pack on purpose: the check packs and builds again under a throwaway version, which would otherwise
+      # leave those binaries in bin/ for the release packages.
+      - name: Verify the packages
+        shell: pwsh
+        run: ./scripts/verify-packages.ps1
+
       - name: Get a short-lived NuGet key
         id: nuget
         uses: NuGet/login@v1

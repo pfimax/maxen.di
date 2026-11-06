@@ -78,4 +78,4 @@ docfx docfx.json        # output goes to _site/
 ## Releasing (maintainers)
 
 Update `CHANGELOG.md` (rename "Unreleased" to the version), then push a tag such as `v1.2.0`. A tag with a suffix, such
-as `v1.2.0-preview.1`, is published as a prerelease. The release workflow builds, tests, packs and pushes to NuGet.
+as `v1.2.0-preview.1`, is published as a prerelease. The release workflow builds, tests, packs, checks the packages in a clean project (`verify-packages.ps1`) and only then pushes to NuGet.
