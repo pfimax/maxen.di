@@ -44,7 +44,9 @@ function Assert-Contains([string]$text, [string]$expected, [string]$what) {
 
 try {
     # A version no cached package can have, so the restore below can only be satisfied by what was just packed.
-    $version = "0.0.0-verify." + (Get-Date -Format "HHmmss")
+    # The stamp starts with the year on purpose: a numeric label with a leading zero ("095543" before 10:00) is not a
+    # valid version, and NuGet then fails the restore without saying why.
+    $version = "0.0.0-verify." + (Get-Date -Format "yyyyMMddHHmmss")
     Invoke-Checked "pack" { dotnet pack "$root/Maxen.DI.slnx" -c $Configuration -o $feed -p:Version=$version -p:ContinuousIntegrationBuild=true } | Out-Null
 
     $expected = @("Maxen.DI", "Maxen.DI.Tool", "Maxen.DI.Extensions.DependencyInjection", "Maxen.DI.Extensions.AspNetCore")
