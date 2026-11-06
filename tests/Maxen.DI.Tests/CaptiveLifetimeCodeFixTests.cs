@@ -15,9 +15,7 @@ public class CaptiveLifetimeCodeFixTests
     // Builds a document, finds the diagnostic with the given id (from the analyzer or the generator), and applies the first fix.
     internal static async Task<string> ApplyFix(string source, string diagnosticId, int actionIndex = 0, CodeFixProvider? provider = null)
     {
-        var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location));
+        var references = CompilationReferences.All();
 
         using var workspace = new AdhocWorkspace();
         var project = workspace.AddProject("Snippet", LanguageNames.CSharp)

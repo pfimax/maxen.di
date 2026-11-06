@@ -10,9 +10,7 @@ public class GeneratorDiagnosticsTests
     private static IReadOnlyList<Diagnostic> Run(string source)
     {
         // Everything loaded in this process is good enough as the snippet's references (runtime + Maxen.DI).
-        var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location));
+        var references = CompilationReferences.All();
 
         var compilation = CSharpCompilation.Create(
             "Snippet",

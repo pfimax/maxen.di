@@ -11,9 +11,7 @@ public class BuilderCallAnalyzerTests
 {
     private static async Task<ImmutableArray<Diagnostic>> Run(string source)
     {
-        var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location));
+        var references = CompilationReferences.All();
 
         var compilation = CSharpCompilation.Create(
             "Snippet",

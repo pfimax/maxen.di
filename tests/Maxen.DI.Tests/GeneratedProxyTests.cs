@@ -67,9 +67,7 @@ public class GeneratedProxyTests
 
     private static (string Generated, IReadOnlyList<Diagnostic> Errors) Generate(string source)
     {
-        var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location));
+        var references = CompilationReferences.All();
 
         var compilation = CSharpCompilation.Create(
             "Snippet",
