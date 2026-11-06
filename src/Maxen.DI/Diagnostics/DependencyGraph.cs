@@ -1,3 +1,4 @@
+using Maxen.DI.Internal;
 using Maxen.DI.Pipeline;
 using System.Reflection;
 
@@ -80,7 +81,7 @@ public sealed class DependencyGraph
 
             foreach (var parameter in constructor.GetParameters())
             {
-                foreach (var (target, deferred) in Targets(container, parameter))
+                foreach (var (target, deferred) in Targets(container, parameter, node.Key.Key))
                 {
                     Enqueue(target);
                     edges.Add(new DependencyEdge(node, target, deferred));
@@ -92,10 +93,18 @@ public sealed class DependencyGraph
     }
 
     /// <summary>Works out which registrations satisfy one constructor parameter.</summary>
-    private static IEnumerable<(ServiceDescriptor Target, bool Deferred)> Targets(Container container, ParameterInfo parameter)
+    private static IEnumerable<(ServiceDescriptor Target, bool Deferred)> Targets(Container container, ParameterInfo parameter, object? ownerKey)
     {
+        var declared = ParameterKeys.Of(parameter);
+
+        // [ServiceKey] receives a value, not a service, so there is nothing to point at.
+        if (ParameterKeys.IsOwnKey(declared)) yield break;
+
         var type = parameter.ParameterType;
-        var key = parameter.GetCustomAttribute<FromKeyAttribute>()?.Key;
+        var key = ParameterKeys.ForOwner(declared, ownerKey).Key;
+
+        // An any-key registration inherits whatever key it is asked with, which isn't known until then.
+        if (ReferenceEquals(key, ServiceKey.AnyKey)) yield break;
 
         // Collections depend on every registration of the element type.
         var element = CollectionElement(type);

@@ -72,7 +72,7 @@ internal sealed class ToolArguments
             _ => 1,
         };
         if (args.Length < 1 + positional)
-            return new ToolArguments { Error = $"'{command}' is missing arguments." + Environment.NewLine + Usage };
+            return new ToolArguments { Error = $"'{command}' is missing arguments." };
 
         var format = "mermaid";
         var validate = command == "validate";

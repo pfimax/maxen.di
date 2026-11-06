@@ -18,6 +18,6 @@ public sealed class Options<T> : IOptions<T> where T : class, new()
         Value = value;
     }
 
-    /// <summary>The finished options object, built on first access.</summary>
+    /// <summary>The finished options object, built when <see cref="IOptions{T}"/> is first resolved.</summary>
     public T Value { get; }
 }

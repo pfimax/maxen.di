@@ -91,6 +91,9 @@ Transient, scoped and singleton lifetimes, keyed services (`.WithKey` and `[From
 `AlsoAs` (one instance under several service types), `IEnumerable<T>` / `T[]` / `Lazy<T>` / `Func<T>`, sync and async
 disposal, circular-dependency detection, scope validation, thread safety, and attribute and convention scanning.
 
+Microsoft's `[FromKeyedServices]` and `[ServiceKey]` attributes work too, so classes written for Microsoft's container
+need no changes. `ServiceKey.AnyKey` registers one service for every key, for example one database per tenant name.
+
 ## Catching problems
 
 ### Validation at startup
@@ -155,7 +158,8 @@ another name. Switching on a profile that was never defined fails with a list of
 ```csharp
 builder.Configure<DatabaseSettings>(s => s.Host = "db");
 builder.BindOptions<DatabaseSettings>(values, section: "Database");   // flat "Database:Port" style pairs
-// inject IOptions<DatabaseSettings>
+// inject Maxen.DI.Options.IOptions<DatabaseSettings>
+// (Maxen's own interface, not Microsoft.Extensions.Options)
 ```
 
 ### Fluent scanning
@@ -175,7 +179,8 @@ var make = scope.Resolve<Func<string, int, Report>>();       // by type and posi
 
 ### Async initialization and more lifetimes
 `IAsyncInitializable` + `await scope.ResolveAsync<T>()` (runs once per instance) and
-`await container.InitializeSingletonsAsync()` (dependencies first). `.AsPooled(max)` keeps instances for reuse by later
+`await container.InitializeSingletonsAsync()` (singletons registered by type; one that takes another
+async-initializable singleton in its constructor waits for it). `.AsPooled(max)` keeps instances for reuse by later
 scopes (`IPoolable.Reset()` is called in between); `.AsPerThread()` gives one instance per thread.
 
 ### Named scopes
@@ -199,9 +204,12 @@ Host.CreateDefaultBuilder().UseMaxenDI(b => b.Decorate<IGreeter, LoudGreeter>())
 WebApplication.CreateBuilder(args).UseMaxenDI();           // Maxen.DI.Extensions.AspNetCore
 // or: var provider = services.BuildMaxenServiceProvider();
 ```
-Settings from `appsettings.json` bind with `builder.BindOptions<Db>(configuration.GetSection("Db"))`. Keyed services,
-`IServiceScopeFactory` and `IServiceProviderIsService` are supported. Each request gets its own scope, and
-`httpContext.GetMaxenScope()` hands you the Maxen scope for features the standard provider doesn't have.
+Settings from `appsettings.json` bind with `builder.BindOptions<Db>(configuration.GetSection("Db"))`. Keyed services
+(including `[FromKeyedServices]`, `[ServiceKey]` and `KeyedService.AnyKey`), `IServiceScopeFactory` and
+`IServiceProviderIsService` / `IServiceProviderIsKeyedService` are supported. `BindOptions` fills Maxen's own
+`IOptions<T>` (`Maxen.DI.Options`), not Microsoft's. When a service can't be built, you get the `InvalidOperationException` that
+code written for Microsoft's container expects, with Maxen's full explanation as its `InnerException`. Each request gets
+its own scope, and `httpContext.GetMaxenScope()` hands you the Maxen scope for features the standard provider doesn't have.
 
 In ASP.NET Core you also get:
 ```csharp
@@ -215,12 +223,18 @@ Classes marked `[Service]` become plain `new Foo(...)` registrations at compile 
 
 - `[Decorator(typeof(IGreeter), Priority = 5)]` wraps a service, open generics included, with no `Decorate` call.
 - `[Intercept(typeof(MyInterceptor), Order = 0)]` puts an interceptor in front; the interface proxy is written at compile
-  time, so it is native AOT friendly. The interceptor needs a public parameterless constructor.
+  time, so it is native AOT friendly. The interceptor needs a public parameterless constructor. Interfaces with generic
+  methods, `ref`/`out`/`in` parameters, events or indexers can't be forwarded by the generator; they fall back to a
+  run-time proxy, which native AOT cannot create.
 - For every type you register in code with `Register<T>()`, the generator writes a direct constructor call and hands it to
-  `GeneratedActivators` when the assembly loads, so the container skips building expression trees. Nothing to switch on.
-- It picks the `[Inject]` constructor or the one with the most parameters. Classes it cannot handle (generic, abstract,
-  optional parameters) get a warning (`MAXEN001`/`MAXEN002`), and a wrong `ServiceType` is an error (`MAXEN003`). Those
-  can still be registered with `RegisterAttributed` at run time.
+  `GeneratedActivators` when the assembly loads. Under native AOT the container uses those calls instead of
+  expression trees; on a normal runtime it still compiles its fastest path and uses the generated call for the rest.
+  Nothing to switch on.
+- It picks the `[Inject]` constructor or the one with the most parameters. Two constructors tied for the most
+  parameters get `MAXEN001`; classes it cannot handle (generic, abstract, optional parameters) get `MAXEN002`; a wrong
+  `ServiceType` is an error (`MAXEN003`). Those classes can still be registered with `RegisterAttributed` at run time.
+- Generated registrations are factories, so `Validate()` and the `maxen-di` tool can't see the dependencies of
+  `[Service]` classes.
 
 The analyzers in the same package are covered in the [diagnostics reference](https://pfimax.github.io/maxen.di/docs/diagnostics.html);
 `samples/Maxen.DI.Samples.Generators` shows it all running.
@@ -230,7 +244,7 @@ The analyzers in the same package are covered in the [diagnostics reference](htt
 ```bash
 dotnet tool install -g Maxen.DI.Tool
 maxen-di graph bin/Release/net10.0/MyApp.dll --format mermaid --validate
-maxen-di validate MyApp.dll                  # CI gate: prints nothing, exits 1 on any problem
+maxen-di validate MyApp.dll                  # CI gate: silent when healthy, exits 1 on any problem
 maxen-di diff old/MyApp.dll new/MyApp.dll    # registrations and dependencies that were added or removed, exits 1 if any
 maxen-di explain MyApp.dll IGreeter          # every registration of a service, which one wins, what it needs, who needs it
 maxen-di snapshot MyApp.dll graph.json       # save the graph; later: maxen-di diff MyApp.dll --baseline graph.json
@@ -314,7 +328,8 @@ to record a new `benchmarks/baseline.json`). The `Benchmarks` workflow runs it o
 The core library is built with the trim/AOT analyzers on and has no warnings. Registrations through
 `Register<T, TImpl>()`, factories, instances and the `[Service]` generator are safe. Features that inherently use
 reflection are marked `[RequiresUnreferencedCode]`: assembly scanning, `[Inject]` properties and methods,
-interception by `DispatchProxy`, and binding options from dictionaries or configuration. Open generics work for closed
+`InterceptWith<T>()` and `Intercept<,>()` (the run-time proxy is their fallback when no generated one exists),
+`ResolveWith<T>(object)` with an anonymous object, and binding options from dictionaries or configuration. Open generics work for closed
 types your app uses.
 
 What has been checked: the console sample publishes with native AOT on Linux with warnings treated as errors, and the

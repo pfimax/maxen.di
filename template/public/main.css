@@ -117,7 +117,7 @@ pre {
   border: 1px solid var(--mx-border);
   border-radius: 12px;
   padding: 0;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   line-height: 1.75;
 }
 pre code { display: block; padding: 1rem 1.1rem; background: transparent; color: var(--mx-text); overflow-x: auto; }
@@ -243,7 +243,9 @@ body[data-layout="landing"] { background: radial-gradient(ellipse 70% 520px at 2
 }
 
 /* Long generic signatures in the API lists have no spaces to break on, which pushed phones sideways. */
-article a.xref, article .xref, article dd, article .inheritedMembers li, article .extensionMethods li, article h1 { overflow-wrap: anywhere; }
+article dd, article .inheritedMembers li, article .extensionMethods li, article h1 { overflow-wrap: anywhere; }
+/* In running text a type name should only break when it can't fit on a line at all, not mid-word by choice. */
+article a.xref, article .xref { overflow-wrap: break-word; }
 
 /* ---------- search results ---------- */
 #search-results { max-width: 860px; margin: 0 auto; padding: 28px 20px 64px; }
@@ -262,14 +264,33 @@ article a.xref, article .xref, article dd, article .inheritedMembers li, article
   .navbar .nav-link { padding-top: 10px; padding-bottom: 10px; }
 }
 
-/* Keep each top-bar label on one line. Between tablet and small desktop widths there is not room for
-   every link next to the search box, so the two reference pages drop out; they stay in the sidebar. */
+/* Keep each top-bar label on one line. */
 .navbar .nav-link { white-space: nowrap; }
-@media (min-width: 768px) and (max-width: 1099px) {
-  .navbar .nav-link { font-size: 0.9rem; padding-left: 0.6rem; padding-right: 0.6rem; }
-  .navbar-nav > li:nth-child(4), .navbar-nav > li:nth-child(5) { display: none; }
-}
 @media (min-width: 768px) and (max-width: 899px) {
-  .navbar-nav > li:nth-child(3) { display: none; }
   #search-query { min-width: 120px; }
 }
+
+/* ---------- cards that are links ---------- */
+/* The whole card is the link, so it keeps the card's look; the title turning green is the hint. */
+a.mx-way, a.mx-feature, a.mx-next-card { display: block; color: inherit; text-decoration: none !important; }
+a.mx-way:hover, a.mx-feature:hover, a.mx-next-card:hover { color: inherit; }
+a.mx-way h3, a.mx-feature h3, a.mx-next-card h3 { transition: color 0.15s ease; }
+a.mx-way:hover h3, a.mx-feature:hover h3, a.mx-next-card:hover h3 { color: var(--mx-accent); }
+a.mx-way:focus-visible, a.mx-feature:focus-visible, a.mx-next-card:focus-visible { outline: 2px solid var(--mx-accent); outline-offset: 4px; border-radius: 14px; }
+
+.mx-next { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.mx-next-card { background: var(--mx-surface); border: 1px solid var(--mx-border); border-radius: 14px; padding: 22px 24px; transition: border-color 0.15s ease; }
+.mx-next-card:hover { border-color: var(--mx-border-strong); }
+.mx-next-card small { font-family: var(--mx-mono); font-size: 0.75rem; color: var(--mx-accent); }
+.mx-next-card h3 { margin: 8px 0 0 !important; font-size: 1.15rem !important; font-weight: 600; }
+.mx-next-card p { margin: 6px 0 0; color: var(--mx-muted); font-size: 0.95rem; }
+
+/* ---------- footer ---------- */
+/* The landing page insets its content more than the guides do; the footer follows so its text lines up. */
+body[data-layout="landing"] footer > .container-xxl { max-width: 1344px; padding-left: 48px; padding-right: 48px; }
+@media (max-width: 767px) {
+  body[data-layout="landing"] footer > .container-xxl { padding-left: 20px; padding-right: 20px; }
+}
+footer a { color: var(--mx-muted); }
+footer a:hover { color: var(--mx-text); }
+.mx-footer { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 0.9rem; }

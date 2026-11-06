@@ -9,7 +9,7 @@ Validate (loops, captive dependencies)
  -> pre-lifetime middleware      runs on every resolve
  -> lifetime                     decides whether to reuse or build
  -> post-lifetime middleware     runs only when something new is built
- -> decorators                   first registered sits closest to the service (see `priority`)
+ -> decorators                   lowest priority sits closest to the service
  -> activation                   constructor, then initializers
 ```
 
@@ -21,11 +21,15 @@ A singleton that already exists skips all of this, unless its registration has p
 public sealed class PerTenantLifetime : Lifetime
 {
     public override string Name => "PerTenant";
-    public override bool IsScopeBound => true;   // longer-lived services must not capture it
+    // longer-lived services must not capture it
+    public override bool IsScopeBound => true;
 
-    public override object Resolve(ResolveContext context, ResolveDelegate next)
+    public override object Resolve(
+        ResolveContext context, ResolveDelegate next)
         => context.Scope.Instances.GetOrCreate(
-            (context.Descriptor, TenantId(context)), () => next(context), context.Descriptor.OwnsInstance);
+            (context.Descriptor, TenantId(context)),
+            () => next(context),
+            context.Descriptor.OwnsInstance);
 }
 
 builder.Register<IReport, Report>().WithLifetime(new PerTenantLifetime());
@@ -53,7 +57,7 @@ builder.Use(MiddlewarePhase.PreLifetime, (ctx, next) =>
 | Picking a constructor | `IConstructorSelector` | `ConstructorSelector = ...` |
 | Filling constructor parameters | `IParameterResolver` | `AddParameterResolver` |
 | Post-construction steps | `IInstanceInitializer` | `AddInitializer` |
-| Method interception | `IInterceptor` | `.InterceptWith<T>()` |
+| Method interception | `IInterceptor` | `.InterceptWith(...)`, `builder.Intercept<,>()` |
 | Watching resolves | `IResolutionObserver` | `Observe` |
 | Reusable setup | `IContainerModule` | `RegisterModule` |
 
@@ -65,15 +69,18 @@ one, because your resolver might claim any parameter. That costs some speed per 
 The core library is analyzed for trimming and AOT (`IsAotCompatible`). Registrations made with
 `Register<T, TImpl>()`, factories, instances and the `[Service]` source generator are safe. Features that
 inherently use reflection are marked `[RequiresUnreferencedCode]` so you are warned when you use them:
-assembly scanning, `[Inject]` properties and methods, interception, and binding options from dictionaries or
+assembly scanning, `[Inject]` properties and methods, `InterceptWith<T>()` and `Intercept<,>()`, and binding options from dictionaries or
 configuration. Open-generic registrations work for closed types your app actually uses.
 The console sample publishes with native AOT and runs; a CI job does that on Linux with warnings treated as errors on
 every push. It also publishes cleanly with the IL trimmer.
 
 The source generator also writes constructor calls for the types you register in code and stores them in
 `GeneratedActivators`. The container prefers them over compiled expression trees, which matters most on native AOT.
-Write your own source of generated activators the same way if you build types some other way:
+If you generate code with your own tool, you can add activators the same way:
 
 ```csharp
-GeneratedActivators.Add(typeof(Foo), new[] { typeof(IClock) }, static args => new Foo((IClock)args[0]!));
+GeneratedActivators.Add(
+    typeof(Foo),
+    new[] { typeof(IClock) },
+    static args => new Foo((IClock)args[0]!));
 ```

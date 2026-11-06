@@ -41,7 +41,7 @@ the source generator or a telemetry pipeline.
 
 ## The command line tool
 
-`maxen-di` inspects the modules in a built assembly. The feature tour contains modules, so you can try it on it:
+`maxen-di` inspects the modules in a built assembly. The feature tour contains modules, so you can try the tool on it:
 
 ```bash
 dotnet build samples/Maxen.DI.Samples.Features -c Release

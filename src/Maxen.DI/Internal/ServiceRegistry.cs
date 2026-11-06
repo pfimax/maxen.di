@@ -68,11 +68,20 @@ internal sealed class ServiceRegistry
     {
         var result = new List<ServiceDescriptor>();
 
-        if (_explicit.TryGetValue(key, out var registered))
+        if (key.IsAnyKey)
+        {
+            // "Every keyed registration of T". The any-key registrations themselves are catch-alls, not members, so they stay out.
+            foreach (var pair in _explicit)
+                if (pair.Key.Type == key.Type && pair.Key.IsKeyed && !pair.Key.IsAnyKey)
+                    result.AddRange(pair.Value);
+        }
+        else if (_explicit.TryGetValue(key, out var registered))
+        {
             result.AddRange(registered);
+        }
 
         // Closed forms of open generics (IRepo<> serving IRepo<Customer>) join the list in registration order.
-        if (key.Type.IsConstructedGenericType)
+        if (key.Type.IsConstructedGenericType && !key.IsAnyKey)
         {
             var definition = key.Type.GetGenericTypeDefinition();
             foreach (var open in _open)
@@ -84,6 +93,12 @@ internal sealed class ServiceRegistry
                     result.Add(open.Close(key.Type, implementation));
             }
         }
+
+        // A key nobody registered falls back to the any-key registrations of the type. Each gets a copy bound to this key,
+        // which this cache keeps, so the key's instance is reused and [ServiceKey] sees the key that was asked for.
+        if (result.Count == 0 && key.IsKeyed && !key.IsAnyKey
+            && _explicit.TryGetValue(new ServiceKey(key.Type, ServiceKey.AnyKey), out var catchAll))
+            result.AddRange(catchAll.Select(d => d.BindKey(key.Key!)));
 
         if (result.Count > 1) result.Sort((a, b) => a.Order.CompareTo(b.Order));
         if (result.Count > 0) return result.ToArray();

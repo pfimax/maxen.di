@@ -333,4 +333,73 @@ public class BuilderCallAnalyzerTests
         Assert.DoesNotContain(singleton, d => d.Id == "MAXEN009");
         Assert.DoesNotContain(transient, d => d.Id == "MAXEN009");
     }
+
+    [Fact]
+    public async Task Microsoft_key_attributes_are_not_reported_as_missing_registrations()
+    {
+        // The attributes are declared in the snippet so the test does not depend on which assemblies happen to be loaded.
+        var diagnostics = await Run("""
+            using Maxen.DI;
+            namespace Microsoft.Extensions.DependencyInjection
+            {
+                public sealed class ServiceKeyAttribute : System.Attribute { }
+                public sealed class FromKeyedServicesAttribute : System.Attribute { public FromKeyedServicesAttribute(object key) { } }
+            }
+            public interface IRepo { }
+            public class Tenant
+            {
+                public Tenant(
+                    [Microsoft.Extensions.DependencyInjection.ServiceKey] Settings key,
+                    [Microsoft.Extensions.DependencyInjection.FromKeyedServices("main")] IRepo repo) { }
+            }
+            public class Settings { }
+            public static class Setup
+            {
+                public static void Configure(ContainerBuilder builder) => builder.Register<Tenant>().WithKey("t1");
+            }
+            """);
+
+        Assert.DoesNotContain(diagnostics, d => d.Id == "MAXEN006");
+    }
+
+    // The generated RegisterGeneratedServices lives in a namespace named after the assembly. Both an ordinary name and
+    // one starting with "Maxen.DI" (like this repository's samples) must keep the check on.
+    [Theory]
+    [InlineData("MyApp")]
+    [InlineData("Maxen.DI.Samples.Shop")]
+    public async Task Generated_registrations_keep_the_missing_registration_check_on(string assemblyNamespace)
+    {
+        var diagnostics = await Run($$"""
+            using Maxen.DI;
+            namespace {{assemblyNamespace}}
+            {
+                // Stands in for the method the source generator writes.
+                internal static class GeneratedRegistrations
+                {
+                    internal static ContainerBuilder RegisterGeneratedServices(this ContainerBuilder builder) => builder;
+                }
+
+                public interface IClock { }
+                [Service(ServiceType = typeof(IClock))] public class Clock : IClock { }
+
+                public interface IRepo { }
+                public class Report { public Report(IClock clock) { } }
+                public class Orders { public Orders(IRepo repo) { } }
+
+                public static class Setup
+                {
+                    public static void Configure(ContainerBuilder builder)
+                    {
+                        builder.RegisterGeneratedServices();
+                        builder.Register<Report>();
+                        builder.Register<Orders>();
+                    }
+                }
+            }
+            """);
+
+        // IClock comes from a [Service] class, so Report is fine; nothing registers IRepo, so Orders is flagged.
+        var missing = Assert.Single(diagnostics, d => d.Id == "MAXEN006");
+        Assert.Contains("IRepo", missing.GetMessage());
+    }
 }

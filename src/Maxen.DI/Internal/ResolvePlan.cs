@@ -4,7 +4,7 @@ namespace Maxen.DI.Internal;
 /// A ready-made recipe for resolving one plain registration from the top: the whole dependency tree is worked out
 /// once, so later resolves build objects without walking the pipeline for every dependency. It only exists when
 /// nothing could change the outcome (no middleware, decorators, conditions or factories), and anything unusual
-/// makes the planner give up so the normal path runs and reports errors exactly as before.
+/// makes the planner give up, so the normal path runs and reports any error in its usual words.
 /// </summary>
 internal sealed class ResolvePlan
 {

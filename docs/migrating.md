@@ -8,7 +8,8 @@ existing `IServiceCollection`, so you can keep your `AddXxx` calls and switch th
 
 ```csharp
 // Generic Host
-Host.CreateDefaultBuilder().UseMaxenDI(b => b.Decorate<IGreeter, LoudGreeter>());
+Host.CreateDefaultBuilder()
+    .UseMaxenDI(b => b.Decorate<IGreeter, LoudGreeter>());
 
 // ASP.NET Core (Maxen.DI.Extensions.AspNetCore)
 WebApplication.CreateBuilder(args).UseMaxenDI();
@@ -20,9 +21,10 @@ var provider = services.BuildMaxenServiceProvider();
 Everything registered with `AddSingleton`, `AddScoped` and `AddTransient` keeps its meaning. Do this first and run your
 tests; it shows whether anything depended on container-specific behaviour before you touch a single registration.
 
-The adapter passes Microsoft's own conformance suite (`Maxen.DI.Specification.Tests`, 89 tests). One setting differs from
-what that suite assumes: Microsoft's default provider does not validate scopes, Maxen.DI does, so the suite runs with
-`builder.Options.ValidateScopes = false`.
+The adapter passes Microsoft's own conformance suite, keyed services included (`Maxen.DI.Specification.Tests`,
+143 tests on .NET 10, 139 on .NET 8 and 9). One setting differs from what that suite assumes: Microsoft's provider
+only validates scopes when asked (the host asks in the Development environment), while Maxen.DI always does unless you
+turn it off, so the suite runs with `builder.Options.ValidateScopes = false`.
 
 ## Microsoft.Extensions.DependencyInjection
 
@@ -34,7 +36,8 @@ what that suite assumes: Microsoft's default provider does not validate scopes, 
 | `services.AddSingleton<IFoo>(instance)` | `builder.RegisterInstance<IFoo>(instance)` |
 | `services.AddScoped<IFoo>(sp => ...)` | `builder.RegisterFactory<IFoo>(ctx => ...).AsScoped()` |
 | `services.AddKeyedSingleton<IFoo, Foo>("a")` | `builder.Register<IFoo, Foo>().AsSingleton().WithKey("a")` |
-| `[FromKeyedServices("a")]` | `[FromKey("a")]` on the parameter |
+| `[FromKeyedServices("a")]`, `[FromKeyedServices]`, `[ServiceKey]` | work as they are; `[FromKey("a")]` is Maxen's own spelling |
+| `services.AddKeyedSingleton<IFoo, Foo>(KeyedService.AnyKey)` | `builder.Register<IFoo, Foo>().AsSingleton().WithKey(ServiceKey.AnyKey)` |
 | `services.AddSingleton(typeof(IRepo<>), typeof(Repo<>))` | `builder.Register(typeof(IRepo<>), typeof(Repo<>)).AsSingleton()` |
 | `services.Replace(...)` | `builder.Replace<IFoo, Foo>()` (or `Override` to keep the original in `ResolveAll`) |
 | `services.TryAddSingleton<IFoo, Foo>()` | `builder.TryRegister<IFoo, Foo>()?.AsSingleton()` (returns null when `IFoo` is already registered) |
@@ -49,6 +52,8 @@ Differences worth knowing:
 - **Scope validation is on by default.** Resolving a scoped service from the root container throws, and a singleton that
   takes a scoped service is rejected, with the full dependency path in the message.
 - **The last registration wins**, same as Microsoft. `ResolveAll` returns every registration in registration order.
+- **Errors.** When a service can't be built, `GetService` and `GetRequiredService` throw `InvalidOperationException`, as
+  Microsoft's container does. The `InnerException` is Maxen's own exception, with the dependency path and suggestions.
 - **Disposal.** The scope that built a transient disposes it. The root container also tracks transients, so resolving a
   disposable transient from the root keeps it alive until the container is disposed. Analyzer `MAXEN007` warns about that.
 
@@ -83,8 +88,9 @@ Differences worth knowing:
 
 ## Checking the move
 
-1. Run `maxen-di validate YourApp.dll` in CI, or set `builder.Options.ValidateOnBuild = true`, to catch missing
-   dependencies, loops and lifetime mismatches at startup instead of at the first request.
+1. Set `builder.Options.ValidateOnBuild = true` to catch missing dependencies, loops and lifetime mismatches at startup
+   instead of at the first request. The `maxen-di` tool can run the same checks in CI, but it only sees registrations
+   made in `IContainerModule` classes, so move them into a module first if you want that.
 2. Run `maxen-di graph YourApp.dll --format mermaid` before and after, and `maxen-di diff old.dll new.dll` to see exactly
    which registrations or dependencies changed.
 3. Add the analyzers (they ship in the `Maxen.DI` package): `MAXEN005` captive dependencies, `MAXEN006` missing

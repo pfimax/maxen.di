@@ -30,8 +30,28 @@ public sealed class CollectionSource : IRegistrationSource
         descriptor.RunInitializers = false;
         descriptor.OwnsInstance = false;
         descriptor.IsSynthetic = true;
+
+        // A read-only list of singletons never changes, so build it once and hand out the same one, as Microsoft's
+        // container does. Arrays, IList<T> and ICollection<T> invite changes, so those stay a fresh copy per resolve.
+        if (IsReadOnlyShape(key.Type) && container is Container owner && OnlySingletons(owner, elementKey))
+            descriptor.Lifetime = Lifetime.Singleton;
+
         yield return descriptor;
     }
+
+    private static bool IsReadOnlyShape(Type type)
+    {
+        if (!type.IsGenericType) return false;
+        var definition = type.GetGenericTypeDefinition();
+        return definition == typeof(IEnumerable<>)
+            || definition == typeof(IReadOnlyCollection<>)
+            || definition == typeof(IReadOnlyList<>);
+    }
+
+    // A condition can include or leave out a member depending on who asks, so a list with one can't be shared.
+    private static bool OnlySingletons(Container container, ServiceKey elementKey)
+        => container.FindAllDescriptors(elementKey)
+            .All(d => ReferenceEquals(d.Lifetime, Lifetime.Singleton) && d.Condition is null);
 
     /// <summary>The element type if <paramref name="type"/> is a collection shape this source supplies, otherwise null.</summary>
     internal static Type? ElementType(Type type)

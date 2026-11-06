@@ -160,6 +160,27 @@ public sealed class ServiceDescriptor
         return closed;
     }
 
+    /// <summary>
+    /// Makes a copy of an any-key registration that answers to one concrete key. The registry keeps one copy per key, and
+    /// instances are cached per descriptor, so every key gets its own singleton (or scoped instance), as with Microsoft's container.
+    /// </summary>
+    internal ServiceDescriptor BindKey(object key)
+    {
+        var bound = new ServiceDescriptor(new ServiceKey(_key.Type, key), ImplementationType, Factory, Instance)
+        {
+            _lifetime = _lifetime,
+            _ownsInstance = _ownsInstance,
+            _condition = _condition,
+            Order = Order,
+            RunInitializers = RunInitializers,
+            IsClosedFromOpenGeneric = IsClosedFromOpenGeneric,
+        };
+        foreach (var kv in _metadata) bound._metadata[kv.Key] = kv.Value;
+        bound._middleware.AddRange(_middleware);
+        bound.Freeze();
+        return bound;
+    }
+
     private void Guard()
     {
         if (_frozen)

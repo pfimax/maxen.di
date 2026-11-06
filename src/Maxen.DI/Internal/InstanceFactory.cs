@@ -52,7 +52,13 @@ internal sealed class InstanceFactory
             if (!_selected.TryGetValue(type, out plan!))
             {
                 parameterContext = new ParameterResolutionContext(context, overrides);
-                plan = _selected.GetOrAdd(type, PlanFor(SelectConstructor(type, parameterContext)));
+                plan = PlanFor(SelectConstructor(type, parameterContext));
+
+                // A class that takes its own key ([ServiceKey], [FromKeyedServices] with no key) may need a different
+                // constructor per registration, so its choice is never cached. Checked only on a miss, which keeps
+                // the common path free of it; the compiled call below copes with those parameters either way.
+                if (!ParameterKeys.DependsOnOwnerKey(type))
+                    plan = _selected.GetOrAdd(type, plan);
             }
         }
         else
@@ -91,6 +97,9 @@ internal sealed class InstanceFactory
     public ConstructorPlan? PlanWithoutBuilding([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, Container container)
     {
         if (type.IsAbstract || type.IsInterface || type.ContainsGenericParameters) return null;
+
+        // Its parameters only make sense once the registration's key is known, which a plan doesn't track. The normal path does.
+        if (ParameterKeys.DependsOnOwnerKey(type)) return null;
 
         if (_selected.TryGetValue(type, out var known)) return known;
 

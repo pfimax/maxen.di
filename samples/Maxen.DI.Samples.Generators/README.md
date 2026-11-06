@@ -15,8 +15,8 @@ What the source generator does for you here:
 | `[Intercept(typeof(MyInterceptor), Order = n)]` | a proxy class that calls the interceptors, no run-time emit |
 | `builder.Register<Plain>()` | a direct constructor call stored in `GeneratedActivators` |
 
-The generated code lives in the namespace named after your assembly (here `Maxen.DI.Samples.Generators`), which is why
-`RegisterGeneratedServices` is available without an extra `using`. To read the generated files, uncomment the
+The generated code lives in the namespace named after your assembly (here `Maxen.DI.Samples.Generators`), so add a
+`using` for it, as `Program.cs` does. The method is `internal`: each assembly registers its own `[Service]` classes. To read the generated files, uncomment the
 `EmitCompilerGeneratedFiles` lines in the project file and look in `obj/generated`.
 
 ## Warnings the analyzers can give you

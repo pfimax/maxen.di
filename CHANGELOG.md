@@ -5,9 +5,41 @@ triggers a release (see the README).
 
 ## Unreleased
 
-Nothing yet. Add your entry here in the pull request that changes behaviour.
+### Added
+- Classes written for Microsoft's container now work unchanged, whether you use the adapter or a plain `ContainerBuilder`:
+  - `[FromKeyedServices("a")]` on a constructor parameter asks for the service registered under `"a"`. Written without
+    a key, `[FromKeyedServices]` asks for the same key as the service being built.
+  - `[ServiceKey]` on a constructor parameter receives the key the service was registered or asked for with. A class that
+    also has a constructor without that parameter can still be registered without a key. If the key has the wrong type for
+    the parameter, you get an error that says so.
+  - `ServiceKey.AnyKey` (and Microsoft's `KeyedService.AnyKey`) registers a service for every key that has no registration
+    of its own. A singleton registered this way gets one instance per key. Resolving `IEnumerable<T>` with it returns every
+    keyed registration of `T`.
+- `[Service]` classes may use the same attributes, and `MAXEN006` no longer warns about parameters marked with them.
+- Microsoft's keyed-services conformance tests now run against the adapter too: 143 tests in all (139 on .NET 8 and 9).
 
-## 1.0.0 (first release, not yet published)
+### Changed
+- `IEnumerable<T>`, `IReadOnlyCollection<T>` and `IReadOnlyList<T>` made up only of singletons are now built once and
+  reused, as Microsoft's container does. If you resolve them as arrays, `IList<T>` or `ICollection<T>`, you still get a
+  new copy every time, so changing it can't affect anyone else.
+- When the Microsoft adapter can't build a service, it now throws `InvalidOperationException`, which is what code written
+  for Microsoft's container catches. The Maxen exception (`ResolutionException`, `CircularDependencyException`, ...) is its
+  `InnerException`. If you caught the Maxen types from an `IServiceProvider`, catch `InvalidOperationException` and look
+  at `InnerException`. Resolving through Maxen's own `IScope` throws the same exceptions as before.
+
+### Fixed
+- `MapMaxenDiagnostics()` validates once, on the first request, and reuses the answer. Before, it validated on every
+  request, so with `ValidateFactories` on, every health probe ran your factories again.
+- `maxen-di` printed its usage text twice when arguments were missing. It now prints it once.
+- `maxen-di` crashed with a stack trace when the inspected assembly's own code failed: a module that throws, a
+  dependency missing from the build output, or a snapshot file in the wrong shape. These now print `Could not inspect`
+  (or "not a snapshot") with the reason, and exit with code 2.
+- In projects whose name starts with `Maxen.DI`, calling `RegisterGeneratedServices()` switched analyzer `MAXEN006` off.
+  It now stays on, and counts your `[Service]` classes as registered.
+- `GetRequiredService<X>()` said "No service for type X has been registered" when `X` was registered but one of its own
+  dependencies was missing. The message now names the dependency that is missing.
+
+## 1.0.0 (2026-11-05)
 
 The first version. Everything below is new, so there is no migration to do.
 

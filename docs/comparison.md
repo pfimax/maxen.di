@@ -4,7 +4,8 @@ This page puts Maxen.DI next to the two containers most .NET teams already know:
 (MS.DI) and Autofac. Every Maxen.DI claim names the test that proves it, so you can run it yourself:
 
 ```bash
-dotnet test tests/Maxen.DI.Tests -c Release --filter "FullyQualifiedName~DecoratorTests"
+dotnet test tests/Maxen.DI.Tests -c Release \
+  --filter "FullyQualifiedName~DecoratorTests"
 ```
 
 The MS.DI and Autofac columns describe their features as we understand them from their public documentation; containers
@@ -18,7 +19,7 @@ change, so check their current docs before relying on a "no". "Add-on" means a s
 | Custom and pooled lifetimes | yes | no | yes (custom) | `PooledLifetimeTests`, `ExtensibilityTests` |
 | Scope tags (`AsScopedTo`) | yes | no | yes (tagged scopes) | `TaggedScopeTests` |
 | Child containers that inherit and override | yes | no | child lifetime scopes | `ChildContainerTests` |
-| Keyed services | yes | yes (.NET 8+) | yes | `KeyedTests` |
+| Keyed services | yes, Microsoft's attributes and `AnyKey` included | yes (.NET 8+) | yes | `KeyedTests`, `KeyedCompatibilityTests` |
 | Open generics | yes | yes | yes | `GenericTests` |
 | `IEnumerable<T>` / arrays of all registrations | yes | yes | yes | `CollectionTests` |
 | `Lazy<T>` and `Func<..., T>` with arguments | built in | no | yes | `ResolveArgumentsTests`, `ResolvePlanTests` |
@@ -50,7 +51,8 @@ These are the things Maxen.DI does that the others do not do out of the box.
 ## Correctness evidence
 
 - **Microsoft's own conformance suite** (`Microsoft.Extensions.DependencyInjection.Specification.Tests`) runs against the
-  Maxen adapter: 89 tests on net8, net9 and net10 (`Maxen.DI.Specification.Tests`).
+  Maxen adapter, the keyed-services suite included: 143 tests on net10, and 139 on net8 and net9 because four of the
+  keyed tests exist only on .NET 10 (`Maxen.DI.Specification.Tests`).
 - **Randomized comparison:** 300 random registration graphs are checked against a plain reference model for captive
   detection, sharing per lifetime and disposal exactly once (`RandomGraphTests`).
 - **Fast path equals slow path:** the precomputed resolve plans are compared with the full pipeline over 729

@@ -18,8 +18,8 @@ public static class ConfigurationExtensions
     {
         ArgumentNullException.ThrowIfNull(section);
 
-        // Binding happens when the options are first read, not now, so configuration providers that
-        // load late (or reload) are still honoured.
+        // Binding happens when IOptions<T> is first resolved, not now, so configuration providers that
+        // load after this call are still honoured. The result is a singleton: later reloads are not picked up.
         return builder.Configure<T>(options => section.Bind(options));
     }
 }

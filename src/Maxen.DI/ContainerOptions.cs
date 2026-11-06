@@ -28,8 +28,8 @@ public sealed class ContainerOptions
     public bool ValidateFactories { get; set; }
 
     /// <summary>
-    /// On by default. Lets the container resolve plain registrations (constructor types without middleware, decorators,
-    /// conditions or factories) from a precomputed recipe, which is faster. Results are identical; turn it off only to
+    /// On by default. Lets the container resolve plain registrations (types and factories without middleware,
+    /// decorators or conditions) from a precomputed recipe, which is faster. Results are identical; turn it off only to
     /// compare behaviour or to rule it out while chasing a problem.
     /// </summary>
     public bool UseResolvePlans { get; set; } = true;

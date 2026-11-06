@@ -10,7 +10,8 @@ public static class DiagnosticsEndpointExtensions
     /// <summary>
     /// Maps a GET endpoint that answers with the registrations, the dependencies between them and any validation
     /// problems, as JSON. It answers 200 when the container is sound and 503 when validation found problems, so it
-    /// can double as a readiness probe. The picture includes type names, so keep it behind authorization in production:
+    /// can double as a readiness probe. The answer is worked out on the first request and reused, because the container
+    /// can't change after it is built. The picture includes type names, so keep it behind authorization in production:
     /// the returned builder lets you call <c>RequireAuthorization()</c> on it.
     /// </summary>
     /// <param name="endpoints">Where to add the route.</param>
@@ -25,28 +26,8 @@ public static class DiagnosticsEndpointExtensions
             if (context.GetMaxenScope()?.Root is not Container container)
                 return Results.Problem("This app is not running on Maxen.DI.", statusCode: StatusCodes.Status501NotImplemented);
 
-            var graph = container.BuildGraph();
-            var issues = container.Validate();
-
-            var body = new
-            {
-                healthy = issues.Count == 0,
-                registrations = graph.Nodes.Select(n => new
-                {
-                    service = n.Key.ToString(),
-                    lifetime = n.Lifetime.ToString(),
-                    implementation = n.ToString(),
-                }),
-                dependencies = graph.Edges.Select(e => new
-                {
-                    from = e.From.Key.ToString(),
-                    to = e.To.Key.ToString(),
-                    deferred = e.Deferred,
-                }),
-                issues = issues.Select(i => new { kind = i.Kind.ToString(), service = i.Service.ToString(), message = i.Message }),
-            };
-
-            return Results.Json(body, statusCode: issues.Count == 0 ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+            var report = DiagnosticsReport.For(container);
+            return Results.Json(report.Body, statusCode: report.StatusCode);
         });
     }
 }

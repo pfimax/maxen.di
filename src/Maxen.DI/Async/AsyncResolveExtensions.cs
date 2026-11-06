@@ -5,8 +5,8 @@ public static class AsyncResolveExtensions
 {
     /// <summary>
     /// Resolves a service and, if it implements <see cref="IAsyncInitializable"/>, waits for its
-    /// initialization (which runs once per instance). Note that the object you get back is what gets
-    /// initialized, so a decorator should forward <c>InitializeAsync</c> to the service it wraps.
+    /// initialization (which runs once per instance). It is the object you get back that gets initialized,
+    /// so a decorator should forward <c>InitializeAsync</c> to the service it wraps.
     /// </summary>
     public static async Task<T> ResolveAsync<T>(this IScope scope, object? key = null, CancellationToken cancellationToken = default)
         where T : notnull

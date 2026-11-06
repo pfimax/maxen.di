@@ -30,7 +30,7 @@ internal static class ServiceCollectionPopulator
 
     private static void Add(ContainerBuilder builder, MsServiceDescriptor descriptor)
     {
-        var key = descriptor.IsKeyedService ? descriptor.ServiceKey : null;
+        var key = descriptor.IsKeyedService ? KeyMapping.ToMaxen(descriptor.ServiceKey) : null;
 
         RegistrationBuilder registration;
         if (descriptor.IsKeyedService)
@@ -40,8 +40,10 @@ internal static class ServiceCollectionPopulator
                 { KeyedImplementationInstance: not null } =>
                     builder.RegisterInstance(descriptor.ServiceType, descriptor.KeyedImplementationInstance),
                 { KeyedImplementationFactory: not null } =>
+                    // The registration's own key, not the one written here: an any-key registration is copied once per
+                    // key it is asked with, and the factory should see that key, as it would with Microsoft's container.
                     builder.RegisterFactory(descriptor.ServiceType, ctx =>
-                        descriptor.KeyedImplementationFactory(new MaxenServiceProvider(ctx.Scope), key)),
+                        descriptor.KeyedImplementationFactory(new MaxenServiceProvider(ctx.Scope), KeyMapping.ToMicrosoft(ctx.Descriptor.Key.Key))),
                 _ => builder.Register(descriptor.ServiceType, descriptor.KeyedImplementationType!),
             };
         }

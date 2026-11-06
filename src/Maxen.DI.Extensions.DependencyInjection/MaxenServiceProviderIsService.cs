@@ -14,5 +14,5 @@ internal sealed class MaxenServiceProviderIsService : IServiceProviderIsService,
         => !serviceType.IsGenericTypeDefinition && _container.IsRegistered(new ServiceKey(serviceType));
 
     public bool IsKeyedService(Type serviceType, object? serviceKey)
-        => !serviceType.IsGenericTypeDefinition && _container.IsRegistered(new ServiceKey(serviceType, serviceKey));
+        => !serviceType.IsGenericTypeDefinition && _container.IsRegistered(new ServiceKey(serviceType, KeyMapping.ToMaxen(serviceKey)));
 }

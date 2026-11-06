@@ -17,7 +17,8 @@ its severity in `.editorconfig` (`dotnet_diagnostic.MAXEN007.severity = none`).
 | [MAXEN009](#maxen009-lazy-or-func-of-a-scoped-service-inside-a-singleton) | Warning | analyzer | no |
 
 ## MAXEN001: Ambiguous constructor
-A `[Service]` class has several public constructors with the same, highest number of parameters, so the generator cannot
+A `[Service]` class has several accessible constructors (public or internal) with the same, highest number of
+parameters, so the generator cannot
 tell which one the container would use. Mark the one you want with `[Inject]`, or remove the others.
 
 ## MAXEN002: Class not supported by the generator
@@ -37,8 +38,10 @@ singleton scoped or transient, or make the dependency a singleton. The quick fix
 ## MAXEN006: Constructor needs a service that is not registered
 `builder.Register<A>()` is written, but a constructor parameter of `A` is a class or interface that nothing in the project
 registers, so resolving `A` would fail. Register the dependency, give the parameter a default value, or mark it
-`[FromKey]`. The check turns itself off when the project registers services in ways it cannot follow (scanning, modules,
-profiles, custom sources).
+`[FromKey]`. Parameters marked with Microsoft's `[FromKeyedServices]` or `[ServiceKey]` are not checked either. The check
+turns itself off when the project registers services in ways it cannot follow (scanning, modules, profiles, custom
+sources). Classes registered through the source generator's `[Service]` attribute count as registered, so
+`RegisterGeneratedServices()` does not turn it off.
 
 ## MAXEN007: Disposable transient resolved from the root container
 Resolving a disposable transient straight from the root container keeps every instance alive until the container itself is

@@ -10,6 +10,12 @@ namespace Maxen.DI.Generators
     {
         private const string InjectAttribute = "Maxen.DI.InjectAttribute";
         private const string FromKeyAttribute = "Maxen.DI.FromKeyAttribute";
+        // Microsoft's attributes are matched by name, so projects that never reference Microsoft's packages are unaffected.
+        private const string FromKeyedServicesAttribute = "Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute";
+        private const string ServiceKeyAttribute = "Microsoft.Extensions.DependencyInjection.ServiceKeyAttribute";
+
+        // [FromKeyedServices] without a key: resolve with the key of the service being built.
+        private const string InheritedKey = "ctx.Descriptor.Key.Key";
 
         public static ServiceModel Create(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
         {
@@ -49,7 +55,10 @@ namespace Maxen.DI.Generators
                     return Fail(DiagnosticDescriptors.UnsupportedClass, "parameter '" + parameter.Name + "' is optional or by-reference");
 
                 arguments.Add(ResolveExpression(parameter));
-                dependencies.Add(parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "|" + KeyOf(parameter));
+
+                // [ServiceKey] receives a value, not a service, so it is no dependency.
+                if (!IsServiceKey(parameter))
+                    dependencies.Add(parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "|" + KeyOf(parameter));
             }
 
             var expression =
@@ -107,14 +116,25 @@ namespace Maxen.DI.Generators
         private static bool HasPublicParameterlessConstructor(INamedTypeSymbol type)
             => !type.IsAbstract && type.InstanceConstructors.Any(c => c.DeclaredAccessibility == Accessibility.Public && c.Parameters.Length == 0);
 
-        /// <summary>The [FromKey] value of a parameter as C# source, or an empty string when it has none.</summary>
+        /// <summary>
+        /// The key a parameter asks for as C# source: from [FromKey] or Microsoft's [FromKeyedServices], an empty string when
+        /// it has none, or <see cref="InheritedKey"/> for [FromKeyedServices] without a key.
+        /// </summary>
         private static string KeyOf(IParameterSymbol parameter)
         {
-            var fromKey = parameter.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == FromKeyAttribute);
-            return fromKey is not null && fromKey.ConstructorArguments.Length > 0
-                ? ConstantFormatter.Format(fromKey.ConstructorArguments[0])
-                : "";
+            var attribute = parameter.GetAttributes().FirstOrDefault(a =>
+                a.AttributeClass?.ToDisplayString() == FromKeyAttribute || a.AttributeClass?.ToDisplayString() == FromKeyedServicesAttribute);
+            if (attribute is null) return "";
+
+            if (attribute.ConstructorArguments.Length == 0) return InheritedKey;
+
+            // [FromKeyedServices(null)] asks for the unkeyed service.
+            var argument = attribute.ConstructorArguments[0];
+            return argument.IsNull ? "" : ConstantFormatter.Format(argument);
         }
+
+        private static bool IsServiceKey(IParameterSymbol parameter)
+            => parameter.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == ServiceKeyAttribute);
 
         private static void ReadAttribute(AttributeData attribute, out string lifetime, out ITypeSymbol? serviceType, out string? key)
         {
@@ -177,11 +197,13 @@ namespace Maxen.DI.Generators
         private static string ResolveExpression(IParameterSymbol parameter)
         {
             var typeName = parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var fromKey = parameter.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == FromKeyAttribute);
 
-            var key = fromKey is not null && fromKey.ConstructorArguments.Length > 0
-                ? ", " + ConstantFormatter.Format(fromKey.ConstructorArguments[0])
-                : "";
+            // [ServiceKey]: the key this registration was asked with, cast to the parameter's type.
+            if (IsServiceKey(parameter))
+                return "(" + typeName + ")ctx.Descriptor.Key.Key!";
+
+            var key = KeyOf(parameter);
+            if (key.Length > 0) key = ", " + key;
 
             // A plain static call, so the generated file needs no using directives.
             return "global::Maxen.DI.ScopeExtensions.Resolve<" + typeName + ">(ctx" + key + ")";

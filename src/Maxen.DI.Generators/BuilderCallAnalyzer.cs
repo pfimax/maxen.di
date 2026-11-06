@@ -19,9 +19,11 @@ namespace Maxen.DI.Generators
     public sealed class BuilderCallAnalyzer : DiagnosticAnalyzer
     {
         // Calls that put services into the container in ways we can't list. Seeing one means "we don't know what is registered".
+        // RegisterGeneratedServices is not one of them: it registers exactly the [Service] classes of this compilation, and
+        // CollectAttributed already counts those.
         private static readonly HashSet<string> OpaqueCalls = new HashSet<string>(StringComparer.Ordinal)
         {
-            "Scan", "RegisterModule", "RegisterModules", "RegisterGeneratedServices", "RegisterAttributed",
+            "Scan", "RegisterModule", "RegisterModules", "RegisterAttributed",
             "AddSource", "UseMaxenDI", "BuildMaxenServiceProvider", "DefineProfile", "UseProfile", "UseProfileFromEnvironment",
         };
 
@@ -192,7 +194,7 @@ namespace Maxen.DI.Generators
                 foreach (var parameter in constructor.Parameters)
                 {
                     // A keyed parameter asks for a specific registration we deliberately did not track.
-                    if (HasAttribute(parameter, "FromKeyAttribute")) continue;
+                    if (IsKeyed(parameter)) continue;
                     if (!(parameter.Type is INamedTypeSymbol parameterType)) continue;
 
                     // Lazy<T> and Func<..., T> look harmless but remember the scope they were made in.
@@ -293,7 +295,7 @@ namespace Maxen.DI.Generators
         // Only parameters we are sure must be registered: plain classes and interfaces without a default, a key or a "?".
         private static bool NeedsRegistration(IParameterSymbol parameter)
         {
-            if (parameter.HasExplicitDefaultValue || HasAttribute(parameter, "FromKeyAttribute")) return false;
+            if (parameter.HasExplicitDefaultValue || IsKeyed(parameter)) return false;
             if (parameter.NullableAnnotation == NullableAnnotation.Annotated) return false;
             if (parameter.RefKind != RefKind.None) return false;
 
@@ -324,6 +326,13 @@ namespace Maxen.DI.Generators
 
             return true;
         }
+
+        // Keyed parameters ask for registrations this analyzer does not track. [ServiceKey] is not a service at all, and
+        // Microsoft's attributes count too, because the container honours them.
+        private static bool IsKeyed(IParameterSymbol parameter)
+            => HasAttribute(parameter, "FromKeyAttribute")
+                || HasAttribute(parameter, "FromKeyedServicesAttribute")
+                || HasAttribute(parameter, "ServiceKeyAttribute");
 
         private static bool HasAttribute(ISymbol symbol, string attributeName)
             => symbol.GetAttributes().Any(a => a.AttributeClass?.Name == attributeName);

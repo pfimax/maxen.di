@@ -13,13 +13,19 @@ namespace Maxen.DI.Tests;
 public class AspNetCoreEndToEndTests
 {
     // Starts a web app on a free local port, runs the test body, and shuts everything down again.
-    private static async Task WithApp(Action<WebApplicationBuilder> configure, Action<WebApplication> map, Func<HttpClient, WebApplication, Task> test)
+    private static async Task WithApp(
+        Action<WebApplicationBuilder> configure,
+        Action<WebApplication> map,
+        Func<HttpClient, WebApplication, Task> test,
+        Action<ContainerBuilder>? container = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Logging.ClearProviders();
         configure(builder);
-        builder.UseMaxenDI();
+
+        // A second UseMaxenDI call would replace the first, so Maxen-only settings come in through here.
+        builder.UseMaxenDI(container);
 
         await using var app = builder.Build();
         map(app);
@@ -140,6 +146,28 @@ public class AspNetCoreEndToEndTests
                 Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable, response.StatusCode);
                 Assert.Contains("MissingDependency", await response.Content.ReadAsStringAsync());
             });
+    }
+
+    [Fact]
+    public async Task The_diagnostics_endpoint_validates_once_so_factories_do_not_run_on_every_probe()
+    {
+        var factoryRuns = 0;
+        await WithApp(
+            // Transient, so every validation run would call the factory again.
+            b => b.Services.AddTransient<IClock>(_ =>
+            {
+                Interlocked.Increment(ref factoryRuns);
+                return new Clock();
+            }),
+            app => app.MapMaxenDiagnostics(),
+            async (client, _) =>
+            {
+                for (var i = 0; i < 3; i++)
+                    Assert.Equal(System.Net.HttpStatusCode.OK, (await client.GetAsync("/_maxen")).StatusCode);
+
+                Assert.Equal(1, Volatile.Read(ref factoryRuns));
+            },
+            c => c.Options.ValidateFactories = true);
     }
 
     [Fact]

@@ -1,14 +1,14 @@
 using Maxen.DI.Internal;
 using Maxen.DI.Pipeline;
-using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace Maxen.DI.Extensibility;
 
 /// <summary>
 /// The fallback resolver. Tries, in order: values supplied by the framework, arguments passed to this
-/// resolve call, a registered service (honouring <see cref="FromKeyAttribute"/>), and finally the
-/// parameter's own default value.
+/// resolve call, a registered service (honouring <see cref="FromKeyAttribute"/> and Microsoft's <c>[FromKeyedServices]</c>),
+/// and finally the parameter's own default value. A parameter marked with Microsoft's <c>[ServiceKey]</c> receives the key
+/// of the service being built.
 /// </summary>
 public sealed class DefaultParameterResolver : IParameterResolver
 {
@@ -17,7 +17,18 @@ public sealed class DefaultParameterResolver : IParameterResolver
     {
         if (context.Overrides?.ContainsKey(parameter.ParameterType) == true) return true;
         if (context.Context.Arguments?.TryGet(parameter, out _) == true) return true;
-        if (context.Context.Container.IsRegistered(KeyOf(parameter))) return true;
+
+        var declared = KeyOf(parameter);
+        var owner = context.Context.Descriptor.Key.Key;
+        if (ParameterKeys.IsOwnKey(declared))
+            return ParameterKeys.AcceptsOwnKey(parameter.ParameterType, owner) || parameter.HasDefaultValue;
+
+        var key = ParameterKeys.ForOwner(declared, owner);
+
+        // Only while an any-key registration itself is being inspected: the real key, and so the answer, isn't known yet.
+        if (key.IsAnyKey) return true;
+
+        if (context.Context.Container.IsRegistered(key)) return true;
         return parameter.HasDefaultValue;
     }
 
@@ -31,8 +42,13 @@ public sealed class DefaultParameterResolver : IParameterResolver
         if (context.Context.Arguments is not null && context.Context.Arguments.TryGet(parameter, out var argument))
             return argument;
 
+        var declared = KeyOf(parameter);
+        var owner = context.Context.Descriptor.Key.Key;
+        if (ParameterKeys.IsOwnKey(declared))
+            return ParameterKeys.AcceptsOwnKey(parameter.ParameterType, owner) ? owner : DefaultOf(parameter);
+
         // One lookup instead of "is it registered?" followed by "resolve it": TryResolve answers both.
-        var resolved = context.Context.TryResolve(KeyOf(parameter));
+        var resolved = context.Context.TryResolve(ParameterKeys.ForOwner(declared, owner));
         return resolved ?? DefaultOf(parameter);
     }
 
@@ -42,6 +58,14 @@ public sealed class DefaultParameterResolver : IParameterResolver
     /// </summary>
     internal static object? ResolveDirect(ParameterInfo parameter, ServiceKey key, ResolveContext context)
     {
+        // Keys that depend on the registration being built are rare, so one type check is all the common path pays.
+        if (key.Key is KeyMarker)
+        {
+            var owner = context.Descriptor.Key.Key;
+            if (ParameterKeys.IsOwnKey(key)) return OwnKeyOf(parameter, owner, context);
+            key = ParameterKeys.ForOwner(key, owner);
+        }
+
         var resolved = context.TryResolve(key);
         if (resolved is not null) return resolved;
 
@@ -51,6 +75,20 @@ public sealed class DefaultParameterResolver : IParameterResolver
                 $"Path: {context.DescribePath()}");
 
         return DefaultOf(parameter);
+    }
+
+    private static object? OwnKeyOf(ParameterInfo parameter, object? owner, ResolveContext context)
+    {
+        if (ParameterKeys.AcceptsOwnKey(parameter.ParameterType, owner)) return owner;
+        if (parameter.HasDefaultValue) return DefaultOf(parameter);
+
+        var parameterType = TypeNames.Format(parameter.ParameterType);
+        var reason = owner is null
+            ? "it was registered without a key"
+            : $"its key '{owner}' is of type {TypeNames.Format(owner.GetType())}, not {parameterType}";
+        throw new ResolutionException(
+            $"Parameter '{parameterType} {parameter.Name}' is marked [ServiceKey], but '{context.Key}' cannot supply it: " +
+            $"{reason}. Path: {context.DescribePath()}");
     }
 
     [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Only value types reach this call, and they always have a default value.")]
@@ -65,16 +103,9 @@ public sealed class DefaultParameterResolver : IParameterResolver
         return value;
     }
 
-    // Reading attributes through reflection allocates every time, and the answer never changes for a
-    // given parameter, so we work it out once.
-    private static readonly ConcurrentDictionary<ParameterInfo, ServiceKey> Keys = new();
-
-    internal static ServiceKey KeyOf(ParameterInfo parameter)
-    {
-        if (Keys.TryGetValue(parameter, out var key)) return key;
-
-        key = new ServiceKey(parameter.ParameterType, parameter.GetCustomAttribute<FromKeyAttribute>()?.Key);
-        Keys[parameter] = key;
-        return key;
-    }
+    /// <summary>
+    /// The key a parameter asks for, as written on it. It can be a marker meaning "the key of the service being built"
+    /// or "the key itself", which <see cref="ParameterKeys.ForOwner"/> turns into a real answer.
+    /// </summary>
+    internal static ServiceKey KeyOf(ParameterInfo parameter) => ParameterKeys.Of(parameter);
 }

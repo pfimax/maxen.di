@@ -1,14 +1,32 @@
-- name: Learn
+- name: Get started
   items:
     - name: Getting started
       href: getting-started.md
-    - name: Extending
-      href: extending.md
-    - name: Migrating
+    - name: Moving from another container
       href: migrating.md
+- name: Guides
+  items:
+    - name: Registering services
+      href: registering.md
+    - name: Lifetimes, scopes and disposal
+      href: lifetimes.md
+    - name: Decorators and interception
+      href: decorators-and-interception.md
+    - name: Modules, profiles and options
+      href: configuration.md
+    - name: Validation and diagnostics
+      href: validation-and-diagnostics.md
+    - name: ASP.NET Core and the Generic Host
+      href: aspnetcore.md
+    - name: The source generator
+      href: source-generator.md
+    - name: The command line tool
+      href: command-line-tool.md
+    - name: Extending Maxen.DI
+      href: extending.md
 - name: Reference
   items:
-    - name: Diagnostics
+    - name: Analyzer diagnostics
       href: diagnostics.md
-    - name: Comparison
+    - name: Comparison with other containers
       href: comparison.md

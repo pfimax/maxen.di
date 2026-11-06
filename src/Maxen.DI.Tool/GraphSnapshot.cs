@@ -59,8 +59,25 @@ internal sealed class GraphSnapshot
         writer.WriteEndArray();
     }
 
+    // Valid JSON in the wrong shape is reported the same way as broken JSON, so the caller has one error to handle
+    // instead of whatever exception the reader happens to throw on an unexpected element.
     private static HashSet<string> ReadArray(JsonElement root, string name)
-        => root.TryGetProperty(name, out var array)
-            ? array.EnumerateArray().Select(e => e.GetString() ?? string.Empty).ToHashSet(StringComparer.Ordinal)
-            : new HashSet<string>(StringComparer.Ordinal);
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+            throw new JsonException("Expected an object with \"nodes\" and \"edges\" lists.");
+
+        var lines = new HashSet<string>(StringComparer.Ordinal);
+        if (!root.TryGetProperty(name, out var array)) return lines;
+
+        if (array.ValueKind != JsonValueKind.Array)
+            throw new JsonException($"\"{name}\" should be a list of strings.");
+
+        foreach (var item in array.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.String)
+                throw new JsonException($"\"{name}\" should be a list of strings.");
+            lines.Add(item.GetString()!);
+        }
+        return lines;
+    }
 }

@@ -1,5 +1,6 @@
 using Maxen.DI.Arguments;
 using Maxen.DI.Diagnostics;
+using Maxen.DI.Extensibility;
 using Maxen.DI.Internal;
 using Maxen.DI.Pipeline;
 
@@ -79,8 +80,10 @@ public sealed class Container : Scope, IContainer
     }
 
     /// <summary>
-    /// Checks the whole configuration without building any service: missing dependencies, loops and
-    /// lifetime mismatches. Returns every problem found (an empty list means all good).
+    /// Checks the whole configuration without building any service: missing dependencies, loops, lifetime
+    /// mismatches and conditional registrations nothing can reach. With <see cref="ContainerOptions.ValidateFactories"/>
+    /// on, it also runs each factory once and reports the ones that throw. Returns every problem found (an empty list
+    /// means all good).
     /// </summary>
     public IReadOnlyList<ValidationIssue> Validate() => GraphValidator.Check(BuildGraph(), Options, this);
 
@@ -120,6 +123,14 @@ public sealed class Container : Scope, IContainer
     internal object? ResolveCore(
         ServiceKey key, IScope scope, ResolveContext? parent, bool required, ResolveArguments? arguments = null)
     {
+        // "Any key" picks out a set of registrations. As a collection that is a fine answer; as one service it would mean
+        // guessing which one the caller meant, so it fails even for a "try" resolve rather than quietly returning nothing.
+        if (key.IsAnyKey && CollectionSource.ElementType(key.Type) is null)
+            throw new ResolutionException(
+                $"Cannot resolve a single '{TypeNames.Format(key.Type)}' with ServiceKey.AnyKey: it stands for every key, " +
+                $"so there is no one service to return. Resolve IEnumerable<{TypeNames.Format(key.Type)}> with it to get " +
+                "every keyed registration, or use a specific key.");
+
         var descriptor = Registry.Find(key, this);
 
         // A conditional registration may decline this particular caller; look further back if so.

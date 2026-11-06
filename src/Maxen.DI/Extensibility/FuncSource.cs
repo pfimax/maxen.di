@@ -6,7 +6,8 @@ namespace Maxen.DI.Extensibility;
 
 /// <summary>
 /// Makes factories resolvable for any registered T:
-/// <c>Func&lt;T&gt;</c> gives a new T per call, and <c>Func&lt;TArg, T&gt;</c> (up to four arguments)
+/// <c>Func&lt;T&gt;</c> resolves T on every call, so T's lifetime decides whether you get a new object, and
+/// <c>Func&lt;TArg, T&gt;</c> (up to four arguments)
 /// passes the arguments to T's constructor, for the parameters that can't come from registrations.
 /// The service must be transient to receive arguments.
 /// </summary>

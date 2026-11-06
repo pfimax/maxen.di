@@ -200,4 +200,136 @@ public class ToolTests
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
         }
     }
+
+    [Fact]
+    public void Missing_arguments_print_the_usage_text_once()
+    {
+        var error = new StringWriter();
+
+        Assert.Equal(2, ToolRunner.Run(new[] { "diff" }, new StringWriter(), error));
+
+        var text = error.ToString();
+        Assert.Contains("'diff' is missing arguments.", text);
+        Assert.Equal(1, text.Split("Usage:").Length - 1);
+    }
+
+    [Fact]
+    public void A_snapshot_with_the_wrong_shape_is_reported_not_thrown()
+    {
+        var file = Path.GetTempFileName();
+        try
+        {
+            // Valid JSON, but "nodes" should be a list of strings.
+            File.WriteAllText(file, """{ "nodes": 5, "edges": [] }""");
+            var error = new StringWriter();
+
+            var code = DiffCommand.Run(ToolArguments.Parse(new[] { "diff", ThisAssembly, "--baseline", file }), new StringWriter(), error);
+
+            Assert.Equal(2, code);
+            Assert.Contains("not a snapshot", error.ToString());
+        }
+        finally
+        {
+            File.Delete(file);
+        }
+    }
+
+    [Fact]
+    public void A_module_that_throws_is_reported_with_its_message_and_exit_code_2()
+    {
+        var directory = NewDirectory();
+        try
+        {
+            var dll = Compile(directory, "Throwing", """
+                public sealed class BrokenModule : Maxen.DI.Extensibility.IContainerModule
+                {
+                    public void Configure(Maxen.DI.ContainerBuilder builder)
+                        => throw new System.InvalidOperationException("the database name is not set");
+                }
+                """);
+            var error = new StringWriter();
+
+            var code = GraphCommand.Run(ToolArguments.Parse(new[] { "validate", dll }), new StringWriter(), error);
+
+            Assert.Equal(2, code);
+            Assert.Contains("Could not inspect", error.ToString());
+            Assert.Contains("the database name is not set", error.ToString());
+        }
+        finally
+        {
+            DeleteQuietly(directory);
+        }
+    }
+
+    [Fact]
+    public void A_missing_dependency_of_the_inspected_assembly_is_reported_with_exit_code_2()
+    {
+        var directory = NewDirectory();
+        try
+        {
+            var helper = Compile(directory, "Helper", "public class Helper { }");
+            var dll = Compile(directory, "UsesHelper", """
+                public sealed class HelperModule : Maxen.DI.Extensibility.IContainerModule
+                {
+                    public void Configure(Maxen.DI.ContainerBuilder builder)
+                        => Maxen.DI.ContainerBuilderExtensions.RegisterInstance(builder, new Helper());
+                }
+                public sealed class DerivedHelper : Helper { }
+                """, helper);
+
+            // The assembly the module needs is gone, as when the tool is pointed at the wrong folder.
+            File.Delete(helper);
+            var error = new StringWriter();
+
+            var code = GraphCommand.Run(ToolArguments.Parse(new[] { "validate", dll }), new StringWriter(), error);
+
+            Assert.Equal(2, code);
+            Assert.Contains("Could not inspect", error.ToString());
+            Assert.Contains("Helper", error.ToString());
+        }
+        finally
+        {
+            DeleteQuietly(directory);
+        }
+    }
+
+    // The tool unloads what it inspected, but Windows keeps the files locked until the unload has really happened.
+    // Leftovers in the temp folder are harmless; a failed cleanup must not hide the test's real result.
+    private static void DeleteQuietly(string directory)
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        try { Directory.Delete(directory, true); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+    }
+
+    private static string NewDirectory()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "maxen-tool-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        return directory;
+    }
+
+    // Builds a small assembly on disk, so a test can point the tool at modules that misbehave without
+    // putting them in this test assembly, which the other tool tests inspect.
+    private static string Compile(string directory, string name, string source, params string[] references)
+    {
+        var platform = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator);
+        var metadata = platform
+            .Append(typeof(Container).Assembly.Location)
+            .Concat(references)
+            .Select(path => Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(path));
+
+        var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
+            name,
+            new[] { Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(source) },
+            metadata,
+            new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(Microsoft.CodeAnalysis.OutputKind.DynamicallyLinkedLibrary));
+
+        var path = Path.Combine(directory, name + ".dll");
+        Microsoft.CodeAnalysis.Emit.EmitResult result;
+        using (var stream = File.Create(path)) result = compilation.Emit(stream);
+        Assert.True(result.Success, string.Join(Environment.NewLine, result.Diagnostics));
+        return path;
+    }
 }
