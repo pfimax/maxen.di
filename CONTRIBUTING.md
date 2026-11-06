@@ -72,10 +72,11 @@ docfx docfx.json        # output goes to _site/
 
 1. Keep a pull request to one idea. Smaller ones get reviewed faster.
 2. Add an entry under "Unreleased" in `CHANGELOG.md`.
-3. Update `README.md` and `docs/` when something users can see changes.
+3. Update `docs/` when something users can see changes, and the READMEs if it affects them: `README.md` is the
+   NuGet page of `Maxen.DI`, and the tool and the two extension packages have their own in `src/<project>/README.md`.
 4. Make sure the build and tests are clean.
 
 ## Releasing (maintainers)
 
 Update `CHANGELOG.md` (rename "Unreleased" to the version), then push a tag such as `v1.2.0`. A tag with a suffix, such
-as `v1.2.0-preview.1`, is published as a prerelease. The release workflow builds, tests, packs, checks the packages in a clean project (`verify-packages.ps1`) and only then pushes to NuGet.
+as `v1.2.0-preview.1`, is published as a prerelease. The release workflow builds, tests, packs, checks the packages in a clean project (`verify-packages.ps1`) and only then pushes to NuGet. It uses NuGet Trusted Publishing, so no API key is stored; the one-time setup is described at the top of `.github/workflows/release.yml`.

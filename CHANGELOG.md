@@ -1,7 +1,7 @@
 # Changelog
 
 Newest first. Versions follow [Semantic Versioning](https://semver.org/), and pushing a tag such as `v1.2.0` is what
-triggers a release (see the README).
+triggers a release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Unreleased
 
