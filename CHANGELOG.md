@@ -5,6 +5,10 @@ triggers a release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Unreleased
 
+Nothing yet. Add your entry here in the pull request that changes behaviour.
+
+## 1.1.0 (2026-11-06)
+
 ### Added
 - Classes written for Microsoft's container now work unchanged, whether you use the adapter or a plain `ContainerBuilder`:
   - `[FromKeyedServices("a")]` on a constructor parameter asks for the service registered under `"a"`. Written without
@@ -38,6 +42,13 @@ triggers a release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
   It now stays on, and counts your `[Service]` classes as registered.
 - `GetRequiredService<X>()` said "No service for type X has been registered" when `X` was registered but one of its own
   dependencies was missing. The message now names the dependency that is missing.
+
+### Documentation
+- Eight new guides on the [documentation site](https://pfimax.github.io/maxen.di/): registering services; lifetimes,
+  scopes and disposal; decorators and interception; modules, profiles and options; validation and diagnostics; ASP.NET
+  Core and the Generic Host; the source generator; and the command line tool.
+- `Maxen.DI.Tool`, `Maxen.DI.Extensions.DependencyInjection` and `Maxen.DI.Extensions.AspNetCore` have their own
+  README on NuGet, starting with their own setup.
 
 ## 1.0.0 (2026-11-05)
 
