@@ -87,7 +87,10 @@ Maxen.DI is **not** the fastest container: MS.DI is about twice as fast for a si
 collection, a keyed service), and faster for a scope that builds a fresh graph and for starting up. Maxen.DI wins when a
 scoped service is asked for repeatedly, allocates less per scope, and is far ahead of Autofac. A decorator takes a
 service off the fast path, which is the difference between the second row and the decorated one. The choice is about
-features and diagnostics, not raw speed. `benchmarks/baseline.json` holds the Maxen.DI figures of the same run.
+features and diagnostics, not raw speed.
+
+`benchmarks/baseline.json` is a different set of numbers: the Maxen.DI figures as measured on the CI machine, which is
+slower than the one above. CI compares each run against it to catch a regression.
 
 ## When to stay where you are
 

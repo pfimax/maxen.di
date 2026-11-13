@@ -1,11 +1,11 @@
 {
-    "SingletonMaxen":  12.91,
-    "ScopeGraphMaxen":  119.18,
-    "ScopedRepeatMaxen":  259.09,
-    "StartupMaxen":  3842.58,
-    "SharedFirstResolveMaxen":  27227.48,
-    "SharedValidateMaxen":  24416.81,
-    "DecoratedMaxen":  677.58,
-    "CollectionMaxen":  16.43,
-    "KeyedMaxen":  19.43
+  "SingletonMaxen": 21.07,
+  "ScopeGraphMaxen": 163.6,
+  "ScopedRepeatMaxen": 246.75,
+  "StartupMaxen": 6263.98,
+  "SharedFirstResolveMaxen": 42740.38,
+  "SharedValidateMaxen": 40328.45,
+  "DecoratedMaxen": 1245.8,
+  "CollectionMaxen": 23.9,
+  "KeyedMaxen": 30.38
 }

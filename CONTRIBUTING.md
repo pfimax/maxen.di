@@ -51,8 +51,12 @@ dotnet run -c Release --project benchmarks/Maxen.DI.Benchmarks -- --filter "*" -
 pwsh scripts/compare-benchmarks.ps1
 ```
 
-Short runs are noisy; a change that is not clearly outside the noise is not a win. Record a new baseline with
-`-Update` only when a change is intentional.
+Short runs are noisy; a change that is not clearly outside the noise is not a win.
+
+`benchmarks/baseline.json` holds the numbers of the CI machine, because that is where the Benchmarks job compares
+against it. On your own machine `compare-benchmarks.ps1` therefore tells you how your machine differs from CI's, not
+whether your change helped; for that, run the benchmarks before and after your change. When a change is meant to move
+the numbers, take the new baseline from the Benchmarks job's output on your pull request, not from a local `-Update`.
 
 ## Native AOT
 
