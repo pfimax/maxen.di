@@ -24,6 +24,7 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       # The tag is the source of truth for the version, so a package can't be released under the wrong number.
       - name: Work out the version

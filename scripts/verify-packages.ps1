@@ -47,7 +47,9 @@ try {
     # The stamp starts with the year on purpose: a numeric label with a leading zero ("095543" before 10:00) is not a
     # valid version, and NuGet then fails the restore without saying why.
     $version = "0.0.0-verify." + (Get-Date -Format "yyyyMMddHHmmss")
-    Invoke-Checked "pack" { dotnet pack "$root/Maxen.DI.slnx" -c $Configuration -o $feed -p:Version=$version -p:ContinuousIntegrationBuild=true } | Out-Null
+    # Package validation compares against the last release and insists the version did not go down, which this
+    # throwaway version does. The real pack, in CI and in the release workflow, keeps it on.
+    Invoke-Checked "pack" { dotnet pack "$root/Maxen.DI.slnx" -c $Configuration -o $feed -p:Version=$version -p:ContinuousIntegrationBuild=true -p:EnablePackageValidation=false } | Out-Null
 
     $expected = @("Maxen.DI", "Maxen.DI.Tool", "Maxen.DI.Extensions.DependencyInjection", "Maxen.DI.Extensions.AspNetCore")
     foreach ($name in $expected) {
