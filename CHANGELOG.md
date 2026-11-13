@@ -5,6 +5,10 @@ triggers a release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Unreleased
 
+Nothing yet. Add your entry here in the pull request that changes behaviour.
+
+## 1.2.0 (2026-11-14)
+
 ### Added
 - .NET 11. All four packages now target net8.0, net9.0, net10.0 and net11.0, and the tests and Microsoft's conformance
   suite run on all four (143 conformance tests on .NET 10 and 11, 139 on .NET 8 and 9).

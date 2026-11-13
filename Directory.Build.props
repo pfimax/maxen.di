@@ -2,7 +2,7 @@
 
   <!-- Shared settings for every project in the solution. -->
   <PropertyGroup>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>pfimax</Authors>
     <Company>pfimax</Company>
     <Copyright>Copyright (c) pfimax</Copyright>
