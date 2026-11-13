@@ -20,8 +20,11 @@ namespace Maxen.DI.CodeFixes
     {
         private const string TransientDisposableFromRoot = "MAXEN007";
 
+        // A scoped service resolved from the root (MAXEN010) is cured the same way: resolve it from a scope.
+        private const string ScopedFromRoot = "MAXEN010";
+
         /// <inheritdoc/>
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(TransientDisposableFromRoot);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(TransientDisposableFromRoot, ScopedFromRoot);
 
         /// <inheritdoc/>
         public override FixAllProvider GetFixAllProvider() => null!;

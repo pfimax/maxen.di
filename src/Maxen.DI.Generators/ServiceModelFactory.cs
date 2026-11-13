@@ -65,7 +65,8 @@ namespace Maxen.DI.Generators
                 "builder.RegisterFactory(typeof(" + service.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "), ctx => new " +
                 typeName + "(" + string.Join(", ", arguments) + "))" +
                 ".WithLifetime(global::Maxen.DI.Lifetime." + lifetime + ")" +
-                (key is null ? "" : ".WithKey(" + key + ")");
+                (key is null ? "" : ".WithKey(" + key + ")") +
+                DependencyMetadata(constructor);
 
             // [Intercept(typeof(X))] becomes InterceptWith(..., new X()), written as a plain static call because the
             // generated file has no using directives. Calls are made lowest Order first, the same as RegisterAttributed does.
@@ -92,6 +93,28 @@ namespace Maxen.DI.Generators
                 string.Join(";", dependencies), location);
 
             return new ServiceModel(typeName, statement, null, info);
+        }
+
+        // A generated registration is a factory, and a factory is a closed box to validation and the dependency graph.
+        // The generator knows exactly what the factory resolves, so it says so on the registration, and the container
+        // can then check a [Service] class the way it checks one registered by type.
+        private static string DependencyMetadata(IMethodSymbol constructor)
+        {
+            var keys = new List<string>();
+            foreach (var parameter in constructor.Parameters)
+            {
+                if (IsServiceKey(parameter)) continue;
+
+                var key = KeyOf(parameter);
+                var keyArgument = key.Length == 0 ? "" : ", " + (key == InheritedKey ? "global::Maxen.DI.ServiceMetadata.SameKey" : key);
+                keys.Add("new global::Maxen.DI.ServiceKey(typeof(" +
+                    parameter.Type.WithNullableAnnotation(NullableAnnotation.None).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + ")" + keyArgument + ")");
+            }
+
+            if (keys.Count == 0) return "";
+
+            return ".WithMetadata(global::Maxen.DI.ServiceMetadata.Dependencies, new global::Maxen.DI.ServiceKey[] { " +
+                string.Join(", ", keys) + " })";
         }
 
         // The [Intercept] interceptor types of a class, lowest Order first; equal orders keep their written order.

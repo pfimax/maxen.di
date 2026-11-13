@@ -33,7 +33,7 @@ namespace Maxen.DI.Generators
         public static readonly DiagnosticDescriptor CaptiveDependencyInCode = new DiagnosticDescriptor(
             id: "MAXEN005",
             title: "Singleton registration depends on a scoped registration",
-            messageFormat: "Singleton '{0}' takes the scoped service '{1}' in its constructor, so that instance would outlive its scope. Register '{0}' as scoped or transient, or '{1}' as a singleton.",
+            messageFormat: "Singleton '{0}' takes the scoped service '{1}' {2}, so that instance would outlive its scope. Register '{0}' as scoped or transient, or '{1}' as a singleton.",
             category: Category,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -61,6 +61,15 @@ namespace Maxen.DI.Generators
             id: "MAXEN009",
             title: "Lazy or Func of a scoped service inside a singleton",
             messageFormat: "Singleton '{0}' takes '{1}' of the scoped service '{2}'. The delegate keeps the scope it was created in, so the scoped service can be resolved after that scope has ended. Take IContainer and create a scope per use instead.",
+            category: Category,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            customTags: WellKnownDiagnosticTags.CompilationEnd);
+
+        public static readonly DiagnosticDescriptor ScopedFromRoot = new DiagnosticDescriptor(
+            id: "MAXEN010",
+            title: "Scoped service resolved from the root container",
+            messageFormat: "'{0}' is scoped, so resolving it from the root container throws a ScopeValidationException. Create a scope and resolve it from that instead.",
             category: Category,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
