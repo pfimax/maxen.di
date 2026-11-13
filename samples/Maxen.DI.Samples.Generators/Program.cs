@@ -32,3 +32,7 @@ Console.WriteLine($"keyed: {scope.Resolve<IStorage>("disk").Where} and {scope.Re
 Console.WriteLine($"open generic decorator: {scope.Resolve<IShelf<string>>().Label()} {scope.Resolve<IShelf<int>>().Label()}");
 
 Console.WriteLine(scope.Resolve<Plain>().Hello());
+
+// A generated registration is a factory, which validation can't look into. The generator writes down what each one
+// resolves, so the [Service] classes are checked, and drawn in the graph, like services registered by type.
+Console.WriteLine($"validation issues: {container.Validate().Count}, dependencies in the graph: {container.BuildGraph().Edges.Count}");
