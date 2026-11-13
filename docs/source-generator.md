@@ -131,8 +131,11 @@ Some classes can't be written as a plain `new Foo(...)` call. The generator skip
 
 The [diagnostics reference](diagnostics.md) explains each one and how to fix it.
 
-A generated registration is a factory registration, so the container treats it as opaque: run-time validation and the
-`maxen-di` tool can't see its dependencies. `MAXEN004` is how the generator makes up for that, at compile time.
+A generated registration is a factory registration, and the container can't look inside a factory. So the generator
+writes down what the factory resolves, as `ServiceMetadata.Dependencies` on the registration. With that, run-time
+validation, the dependency graph and the `maxen-di` tool treat a `[Service]` class like one registered by type: a
+missing dependency or a singleton holding a scoped service is reported. `MAXEN004` catches the second of those at
+compile time as well.
 
 ### `RegisterAttributed`, the run-time fallback
 
@@ -242,6 +245,11 @@ much they replace depends on the runtime:
 - On a normal runtime, the container keeps its own compiled fast path for most constructors, because it needs no
   argument array. The generated call takes over where the container would otherwise compile an array-based call.
 
+The container doesn't compile a call for every constructor up front. A constructor is first called through
+reflection, and gets a compiled call, made on a background thread, once it has been used twice. A singleton is
+built once and never pays for compiling; a service built on every request is on the compiled path after its first
+couple of uses. A constructor with a generated call uses that from the start, where the generated call applies.
+
 `GeneratedActivators.PreferForAllConstruction` is the switch between the two. It is `true` when the runtime can't
 compile dynamic code, which means native AOT, and `false` otherwise. It is public and settable, for tests and special
 hosts; you shouldn't need to touch it.
@@ -293,12 +301,16 @@ files under the project's analyzers node without this setting. There are up to t
 
 The package also brings analyzers that read the registrations you write in code: a singleton that takes a scoped
 service (`MAXEN005`), a constructor that needs a service nothing registers (`MAXEN006`), a disposable transient resolved
-from the root container (`MAXEN007`), and a `Lazy` or `Func` of a scoped service inside a singleton (`MAXEN009`).
+from the root container (`MAXEN007`), a `Lazy` or `Func` of a scoped service inside a singleton (`MAXEN009`), and a
+scoped service resolved from the root container (`MAXEN010`).
 Several of them come with code fixes.
 
 `MAXEN006` counts your `[Service]` classes as registered, so calling `RegisterGeneratedServices()` keeps it working.
-It only works while it can see every registration. It switches itself off for the whole project as soon as it
+It only works while it can see every registration. It switches itself off as soon as it
 finds a call it can't follow: scanning, `RegisterAttributed`, modules, profiles,
-registration sources, `UseMaxenDI` or a non-generic `Register(typeof(...), ...)`. The
+registration sources, `UseMaxenDI`, `Populate`, a non-generic `Register(typeof(...), ...)`, or a builder passed to a
+method in another project. A builder you create in a local variable and only call methods on is judged on its own, so
+such a call on one builder doesn't switch the check off for another; see
+[Projects that build more than one container](diagnostics.md#projects-that-build-more-than-one-container). The
 [diagnostics reference](diagnostics.md) lists every ID with its fix, and
 [Validation and diagnostics](validation-and-diagnostics.md) covers the checks that run when the container is built.

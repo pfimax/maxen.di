@@ -55,7 +55,8 @@ public sealed class CachingProducts : IProducts
 ```
 
 Because the decorator lives as long as the service it wraps, the usual lifetime rules apply to its dependencies: a
-decorator on a singleton can't take a scoped service. A decorator whose constructor has no parameter for the service it
+decorator on a singleton can't take a scoped service. `Validate()` checks both that and that everything the decorator
+needs is registered. A decorator whose constructor has no parameter for the service it
 wraps is reported by analyzer `MAXEN008` while you type; see [Diagnostics](diagnostics.md).
 
 ### Stacking and priority

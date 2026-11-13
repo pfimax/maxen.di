@@ -1,6 +1,6 @@
 ![Maxen.DI: know what is wrong before your users do](https://raw.githubusercontent.com/pfimax/maxen.di/main/images/banner.png)
 
-[![NuGet](https://img.shields.io/nuget/v/Maxen.DI?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI) [![CI](https://github.com/pfimax/maxen.di/actions/workflows/ci.yml/badge.svg)](https://github.com/pfimax/maxen.di/actions/workflows/ci.yml) ![.NET 8, 9, 10](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/Maxen.DI?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI) [![CI](https://github.com/pfimax/maxen.di/actions/workflows/ci.yml/badge.svg)](https://github.com/pfimax/maxen.di/actions/workflows/ci.yml) ![.NET 8, 9, 10, 11](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010%20%7C%2011-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
 
 [Documentation](https://pfimax.github.io/maxen.di/) · [Getting started](https://pfimax.github.io/maxen.di/docs/getting-started.html) · [API reference](https://pfimax.github.io/maxen.di/api/) · [Samples](https://github.com/pfimax/maxen.di/tree/main/samples) · [Changelog](https://github.com/pfimax/maxen.di/blob/main/CHANGELOG.md)
 
@@ -65,11 +65,13 @@ builder.UseMaxenDI(c => c.Decorate<IGreeter, LoudGreeter>());
 | A constructor needs a service nobody registered | `MAXEN006` while typing, `Validate()` at startup, `maxen-di validate` in CI |
 | A singleton quietly captures a per-request service | `MAXEN004`/`MAXEN005` while typing, scope validation at run time |
 | A disposable transient resolved from the root container leaks | `MAXEN007` while typing |
+| A scoped service resolved from the root container | `MAXEN010` while typing, scope validation at run time |
+| A decorator needs a service nobody registered | `Validate()` at startup, `maxen-di validate` in CI |
 | `Lazy<T>` or `Func<T>` of a scoped service inside a singleton | `MAXEN009` while typing |
 | A pull request changes the dependency graph by accident | `maxen-di diff` fails the build |
 | "Why did it pick that implementation?" | `maxen-di explain`, `ResolutionTrace`, "did you mean" errors |
 
-Most analyzer warnings come with a one-click fix. The [diagnostics reference](https://pfimax.github.io/maxen.di/docs/diagnostics.html)
+Five of the ten analyzer warnings come with a one-click fix. The [diagnostics reference](https://pfimax.github.io/maxen.di/docs/diagnostics.html)
 explains each one.
 
 ## Packages
@@ -81,7 +83,7 @@ explains each one.
 | [Maxen.DI.Extensions.AspNetCore](https://www.nuget.org/packages/Maxen.DI.Extensions.AspNetCore) | [![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Extensions.AspNetCore?label=&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Extensions.AspNetCore) | `UseMaxenDI()` for web apps, request values and a diagnostics endpoint. |
 | [Maxen.DI.Tool](https://www.nuget.org/packages/Maxen.DI.Tool) | [![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Tool?label=&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Tool) | The `maxen-di` command line tool for graphs, validation and diffs in CI. |
 
-All packages target .NET 8, 9 and 10.
+All packages target .NET 8, 9, 10 and 11.
 
 ## Features
 
@@ -102,16 +104,20 @@ the calls you know.
 
 ## Performance
 
-Short BenchmarkDotNet runs on one machine (Core i5-10400T, .NET 10):
+BenchmarkDotNet runs on one machine (Core i5-11400F, .NET 10):
 
 | Scenario | Maxen.DI | Microsoft | Autofac |
 |---|---|---|---|
-| Resolve an existing singleton | ~20 ns, 0 B | ~10 ns, 0 B | ~130 ns, 656 B |
-| New scope and a three-level graph | ~210 ns, 224 B | ~150-165 ns, 360 B | ~2,000 ns, 4.8 KB |
-| Same scoped service asked for 10 times | ~300 ns, 200 B | ~520 ns, 336 B | not measured |
+| Resolve an existing singleton | ~13 ns, 0 B | ~6 ns, 0 B | ~70 ns, 656 B |
+| New scope and a three-level graph | ~115 ns, 232 B | ~85 ns, 360 B | ~1,230 ns, 4.8 KB |
+| Same scoped service asked for 10 times | ~180-260 ns, 208 B | ~295 ns, 336 B | ~1,680 ns, 9.9 KB |
+| Build a container and serve the first request | ~3.8 µs, 13 KB | ~2.2 µs, 8 KB | ~14.9 µs, 37 KB |
+| Every registration of a service (three singletons) | ~16 ns, 0 B | ~8 ns, 0 B | ~415 ns, 1.2 KB |
+| A keyed singleton | ~19 ns, 0 B | ~11 ns, 0 B | ~75 ns, 664 B |
 
-Maxen.DI is not the fastest container for every kind of work: Microsoft's is quicker for plain singletons and fresh
-scopes. The extra time buys the checking and the extension points. The
+Maxen.DI is not the fastest container for every kind of work: Microsoft's is about twice as quick for a single lookup
+and somewhat quicker for a fresh scope and for starting up. Maxen.DI is quicker when a scoped service is asked for
+repeatedly, and allocates less per scope. The extra time buys the checking and the extension points. The
 [comparison](https://pfimax.github.io/maxen.di/docs/comparison.html) has the full picture and how to run the
 benchmarks yourself.
 

@@ -4,14 +4,20 @@ Thanks for helping out. This is how work gets done here.
 
 ## Setting up
 
-You need the .NET 8, 9 and 10 SDKs, because the libraries target all three. Then:
+You need the .NET 11 SDK to build, and the .NET 8, 9, 10 and 11 runtimes to run the tests, because the libraries
+target all four. Then:
 
 ```bash
 dotnet build Maxen.DI.slnx
 dotnet test Maxen.DI.slnx
 ```
 
-A clean build has zero warnings, and we keep it that way.
+A clean build has zero warnings, and we keep it that way. CI builds with `-p:ContinuousIntegrationBuild=true`, which
+turns warnings into errors; add it to your own build to see what CI will see.
+
+Packing a library also checks that nothing public was removed or changed since the last release
+(`PackageValidationBaselineVersion` in `Directory.Build.targets`). A failure there means the change would break code
+compiled against the released version.
 
 ## Rules for code
 
@@ -78,5 +84,6 @@ docfx docfx.json        # output goes to _site/
 
 ## Releasing (maintainers)
 
-Update `CHANGELOG.md` (rename "Unreleased" to the version), then push a tag such as `v1.2.0`. A tag with a suffix, such
+Update `CHANGELOG.md` (rename "Unreleased" to the version) and, once the previous release is on NuGet, set
+`PackageValidationBaselineVersion` in `Directory.Build.targets` to it. Then push a tag such as `v1.2.0`. A tag with a suffix, such
 as `v1.2.0-preview.1`, is published as a prerelease. The release workflow builds, tests, packs, checks the packages in a clean project (`verify-packages.ps1`) and only then pushes to NuGet. It uses NuGet Trusted Publishing, so no API key is stored; the one-time setup is described at the top of `.github/workflows/release.yml`.

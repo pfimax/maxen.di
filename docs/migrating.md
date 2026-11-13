@@ -22,7 +22,7 @@ Everything registered with `AddSingleton`, `AddScoped` and `AddTransient` keeps 
 tests; it shows whether anything depended on container-specific behaviour before you touch a single registration.
 
 The adapter passes Microsoft's own conformance suite, keyed services included (`Maxen.DI.Specification.Tests`,
-143 tests on .NET 10, 139 on .NET 8 and 9). One setting differs from what that suite assumes: Microsoft's provider
+143 tests on .NET 10 and 11, 139 on .NET 8 and 9). One setting differs from what that suite assumes: Microsoft's provider
 only validates scopes when asked (the host asks in the Development environment), while Maxen.DI always does unless you
 turn it off, so the suite runs with `builder.Options.ValidateScopes = false`.
 
@@ -54,6 +54,10 @@ Differences worth knowing:
 - **The last registration wins**, same as Microsoft. `ResolveAll` returns every registration in registration order.
 - **Errors.** When a service can't be built, `GetService` and `GetRequiredService` throw `InvalidOperationException`, as
   Microsoft's container does. The `InnerException` is Maxen's own exception, with the dependency path and suggestions.
+- **Disposed scopes.** As with Microsoft's container, a scope or provider that has been disposed throws
+  `ObjectDisposedException` for every request, whatever the lifetime of the service.
+- **Starting up.** As Microsoft's container does, Maxen.DI calls a constructor through reflection the first couple of
+  times and compiles a faster call in the background once the service is used again, so startup doesn't wait for it.
 - **Disposal.** The scope that built a transient disposes it. The root container also tracks transients, so resolving a
   disposable transient from the root keeps it alive until the container is disposed. Analyzer `MAXEN007` warns about that.
 
@@ -94,4 +98,5 @@ Differences worth knowing:
 2. Run `maxen-di graph YourApp.dll --format mermaid` before and after, and `maxen-di diff old.dll new.dll` to see exactly
    which registrations or dependencies changed.
 3. Add the analyzers (they ship in the `Maxen.DI` package): `MAXEN005` captive dependencies, `MAXEN006` missing
-   registrations, `MAXEN007` disposable transients resolved from the root.
+   registrations, `MAXEN007` disposable transients resolved from the root, `MAXEN010` scoped services resolved from
+   the root.

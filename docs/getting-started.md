@@ -111,10 +111,14 @@ features go.
 ## When something goes wrong
 
 - `ServiceNotRegisteredException` lists likely matches ("did you mean ...").
-- `builder.Options.ValidateOnBuild = true` checks the whole graph at startup: missing services, loops, captive dependencies.
+- `builder.Options.ValidateOnBuild = true` checks the whole graph at startup: missing services, loops, captive
+  dependencies. Decorators and `[Service]` classes are checked too.
 - `var trace = new ResolutionTrace(); builder.Observe(trace);` records what was built and how long it took.
 - While you type, the analyzers warn about a singleton that depends on a scoped service (`MAXEN004`, `MAXEN005`), a
-  missing registration (`MAXEN006`) and more. [Diagnostics](diagnostics.md) lists them all.
+  missing registration (`MAXEN006`), a scoped service resolved from the root container (`MAXEN010`) and more.
+  [Diagnostics](diagnostics.md) lists them all.
+- A scope that has been disposed refuses every request with an `ObjectDisposedException`, so a service used after
+  its scope ended fails where the mistake is.
 - In CI, `maxen-di validate YourApp.dll` fails the build on any of these. It reads the registrations in the
   `IContainerModule` classes of your assembly.
 

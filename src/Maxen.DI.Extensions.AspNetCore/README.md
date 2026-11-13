@@ -1,6 +1,6 @@
 # Maxen.DI.Extensions.AspNetCore
 
-[![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Extensions.AspNetCore?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Extensions.AspNetCore) ![.NET 8, 9, 10](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Extensions.AspNetCore?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Extensions.AspNetCore) ![.NET 8, 9, 10, 11](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010%20%7C%2011-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
 
 Use [Maxen.DI](https://www.nuget.org/packages/Maxen.DI) as the container of an ASP.NET Core app in one line. Your
 `builder.Services` registrations keep working, each request still gets its own scope, and you get a few web-specific
