@@ -71,7 +71,17 @@ default.
 Validation reads constructors. It doesn't build anything, so some things stay invisible to it:
 
 - **Factories are opaque.** A service registered with `RegisterFactory` is a leaf in the graph: validation can't see
-  what the lambda will ask for. Instances are the same. `ValidateFactories`, below, is the way round that.
+  what the lambda will ask for. Instances are the same. There are two ways round that. `ValidateFactories`, below,
+  runs the factories. Or say what a factory resolves, and it is checked like a constructor with those parameters:
+
+  ```csharp
+  builder.RegisterFactory<IGreeter>(
+          ctx => new Greeter(ctx.Resolve<IClock>()))
+      .WithMetadata(ServiceMetadata.Dependencies,
+          new[] { ServiceKey.For<IClock>() });
+  ```
+
+  The registrations the [source generator](source-generator.md) writes for `[Service]` classes carry this already.
 - **Values supplied at resolve time** look like missing dependencies. If a service takes arguments through
   `ResolveWith` or a `Func<string, T>`, mark its registration so validation leaves those parameters alone:
 
@@ -79,7 +89,12 @@ Validation reads constructors. It doesn't build anything, so some things stay in
   builder.Register<Report>().WithRuntimeArguments();
   ```
 
-- Decorators and property injection are not part of the graph.
+- **Property and method injection** are not checked. A missing service for an `[Inject]` member shows up when the
+  service is resolved.
+
+Decorators are checked. A decorator is built with the service it wraps and lives as long as it does, so what the
+decorator's constructor needs is treated as that service's own: a missing one is a `MissingDependency`, and a decorator
+on a singleton that takes a scoped service is a `LifetimeMismatch`.
 
 ## The scope and factory options
 
@@ -104,8 +119,11 @@ builder.RegisterFactory<IGreeter>(
 var issues = container.Validate();
 ```
 
-Each factory runs from a throwaway scope, so scoped factories work. The factories run for real, though: whatever
-side effects they have happen, and a singleton built this way stays cached. Leave it off if your factories open
+Each factory runs from a throwaway scope, so scoped factories work. That scope sits inside one scope for every label
+used with `AsScopedTo`, so a factory registered that way, or one that resolves such a service, works too. The factories
+run for real, though: whatever side effects they have happen, and a singleton built this way stays cached. If
+`ValidateOnBuild` then fails the build, the container is disposed before the exception reaches you, and those
+singletons with it. Leave it off if your factories open
 connections, send messages or do anything else you wouldn't want at startup. The factories only run when the
 constructor checks found nothing, since there is no point running them against a graph already known to be broken.
 
@@ -176,8 +194,9 @@ couldn't be chosen. The library has no JSON export of the graph; `maxen-di graph
 [command line tool](command-line-tool.md) has one, and so does the ASP.NET Core endpoint in
 [ASP.NET Core](aspnetcore.md).
 
-Like validation, the graph treats factories and instances as leaves and leaves out decorators and property
-injection.
+The graph treats factories and instances as leaves, unless they say what they resolve, and leaves out property
+injection. It also leaves out what decorators need: validation checks that, but the drawn graph shows services, and
+a decorator is not a registration of its own.
 
 ## Watching resolutions
 

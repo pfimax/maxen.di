@@ -9,13 +9,15 @@ namespace Maxen.DI.Generators
     internal sealed class CodeRegistration
     {
         public CodeRegistration(
-            INamedTypeSymbol service, INamedTypeSymbol implementation, string lifetime, bool isSpecific, Location location)
+            INamedTypeSymbol service, INamedTypeSymbol implementation, string lifetime, bool isSpecific, Location location,
+            ILocalSymbol? builder)
         {
             Service = service;
             Implementation = implementation;
             Lifetime = lifetime;
             IsSpecific = isSpecific;
             Location = location;
+            Builder = builder;
         }
 
         public INamedTypeSymbol Service { get; }
@@ -31,5 +33,11 @@ namespace Maxen.DI.Generators
         public bool IsSpecific { get; }
 
         public Location Location { get; }
+
+        /// <summary>
+        /// The local variable holding the builder this was registered on, or null when the call was made on anything
+        /// else (a parameter, a field, the result of a call). See <see cref="RegistrationFacts.IsOwnContainer"/>.
+        /// </summary>
+        public ILocalSymbol? Builder { get; }
     }
 }

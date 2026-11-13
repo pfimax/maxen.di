@@ -16,6 +16,16 @@ public class Scope : IScope
 
     private static readonly List<Scope> ClosedChildren = new();
 
+    // Set once, when disposal starts. Without it only lookups that touch the instance store would notice the scope
+    // is gone, and a transient with nothing to dispose would still be handed out from a scope that has ended.
+    private volatile bool _disposed;
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(Scope), "The scope has already been disposed.");
+    }
+
     internal Scope(Container? root, Scope? parent = null, object? tag = null)
     {
         _root = root;
@@ -53,12 +63,17 @@ public class Scope : IScope
     // of ordinary scoped services. The parent link exists only so tagged lifetimes can find "the nearest
     // scope with this label". Disposing a parent does not dispose its children; each owner disposes its own.
     /// <inheritdoc/>
-    public IScope CreateScope() => Adopt(new Scope(Core, this));
+    public IScope CreateScope()
+    {
+        ThrowIfDisposed();
+        return Adopt(new Scope(Core, this));
+    }
 
     /// <inheritdoc/>
     public IScope CreateScope(object tag)
     {
         ArgumentNullException.ThrowIfNull(tag);
+        ThrowIfDisposed();
         return Adopt(new Scope(Core, this, tag));
     }
 
@@ -115,18 +130,33 @@ public class Scope : IScope
     public bool IsRegistered(ServiceKey key) => Core.IsRegisteredCore(key);
 
     /// <inheritdoc/>
-    public object Resolve(ServiceKey key) => Core.ResolveCore(key, this, null, required: true)!;
+    public object Resolve(ServiceKey key)
+    {
+        ThrowIfDisposed();
+        return Core.ResolveCore(key, this, null, required: true)!;
+    }
+
     /// <inheritdoc/>
     public object ResolveWith(ServiceKey key, ResolveArguments arguments)
     {
         ArgumentNullException.ThrowIfNull(arguments);
+        ThrowIfDisposed();
         return Core.ResolveCore(key, this, null, required: true, arguments)!;
     }
 
     /// <inheritdoc/>
-    public object? TryResolve(ServiceKey key) => Core.ResolveCore(key, this, null, required: false);
+    public object? TryResolve(ServiceKey key)
+    {
+        ThrowIfDisposed();
+        return Core.ResolveCore(key, this, null, required: false);
+    }
+
     /// <inheritdoc/>
-    public IReadOnlyList<object> ResolveAll(ServiceKey key) => Core.ResolveAllCore(key, this, null);
+    public IReadOnlyList<object> ResolveAll(ServiceKey key)
+    {
+        ThrowIfDisposed();
+        return Core.ResolveAllCore(key, this, null);
+    }
 
     // IServiceProvider says "return null if unknown", so GetService never throws for missing services.
     object? IServiceProvider.GetService(Type serviceType) => TryResolve(new ServiceKey(serviceType));
@@ -145,6 +175,7 @@ public class Scope : IScope
     /// <summary>Disposes everything this scope built, and, when <c>DisposeChildScopes</c> is on, its child scopes first.</summary>
     public void Dispose()
     {
+        _disposed = true;
         List<Exception>? errors = null;
 
         // Children first: they may still be using things this scope owns.
@@ -164,6 +195,7 @@ public class Scope : IScope
     /// <summary>Asynchronous version of <see cref="Dispose"/>.</summary>
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
         List<Exception>? errors = null;
 
         foreach (var child in CloseChildren())

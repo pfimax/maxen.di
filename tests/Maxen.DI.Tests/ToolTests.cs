@@ -75,6 +75,25 @@ public class ToolTests
     }
 
     [Fact]
+    public void An_assembly_built_with_another_version_of_the_library_gets_a_warning()
+    {
+        var note = ModuleInspector.VersionNote("MyApp", new Version(1, 0, 0, 0), new Version(1, 2, 0, 0));
+
+        Assert.NotNull(note);
+        Assert.Contains("MyApp", note);
+        Assert.Contains("built with Maxen.DI 1.0.0", note);
+        Assert.Contains("this tool uses 1.2.0", note);
+        Assert.Contains("--version 1.0.0", note);
+    }
+
+    [Theory]
+    [InlineData("1.2.0.0", "1.2.0.0")]
+    [InlineData("1.2.0.0", "1.2.0.7")]
+    [InlineData(null, "1.2.0.0")]
+    public void Matching_versions_and_assemblies_without_the_library_get_no_warning(string? built, string tool)
+        => Assert.Null(ModuleInspector.VersionNote("MyApp", built is null ? null : Version.Parse(built), Version.Parse(tool)));
+
+    [Fact]
     public void Diffing_an_assembly_with_itself_finds_nothing()
     {
         var output = new StringWriter();

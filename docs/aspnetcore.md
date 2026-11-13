@@ -146,7 +146,7 @@ the graph. Prefer type registrations where you can, or switch on `ValidateFactor
 - **`IServiceProvider`** itself: asking for it gives you the provider for the current scope.
 
 The adapter passes Microsoft's own conformance suite (`Maxen.DI.Specification.Tests`), keyed services included: 143
-tests on .NET 10, and 139 on .NET 8 and 9 because four keyed tests only exist on .NET 10. The suite runs with scope
+tests on .NET 10 and 11, and 139 on .NET 8 and 9 because four keyed tests only exist from .NET 10 on. The suite runs with scope
 validation switched off, for the reason given below. [Comparison](comparison.md) has the details.
 
 ## One scope per request
@@ -236,7 +236,8 @@ A few things to know before you rely on it:
 
 - It builds the graph and runs `Validate()` once, on the first request, and answers every later request from that
   result. The configuration can't change after `Build()`, so the answer can't either; it tells you whether this
-  deployment is sound. With `ValidateFactories` on, your factories therefore run once, not on every probe.
+  deployment is sound. With `ValidateFactories` on, your factories therefore run once, not on every probe. Only an
+  answer is kept: if working it out throws, that request fails with a 500 and the next one tries again.
 - The JSON names your types. `MapMaxenDiagnostics` returns a `RouteHandlerBuilder`, so you can put it behind
   authorization, or limit it to an internal host name if your probe can't authenticate:
 

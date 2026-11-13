@@ -28,7 +28,8 @@ full list with fixes is in [docs/diagnostics.md](../../docs/diagnostics.md).
 builder.Register<ReportService>().AsSingleton();          // MAXEN005 if ReportService takes a scoped service
 builder.Register<Needs>();                                // MAXEN006 if Needs takes a service nobody registers
 container.Resolve<DisposableTransient>();                 // MAXEN007 when resolved from the root container
+container.Resolve<ScopedService>();                       // MAXEN010: a scoped service needs a scope
 [Service(ServiceType = typeof(IFoo))] class NotAFoo { }   // MAXEN003: does not implement IFoo (error)
 ```
 
-MAXEN004-007 come with code fixes in Visual Studio and Rider (`Maxen.DI.CodeFixes` ships inside the package).
+MAXEN004-007 and MAXEN010 come with code fixes in Visual Studio and Rider (`Maxen.DI.CodeFixes` ships inside the package).

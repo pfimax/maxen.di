@@ -13,7 +13,14 @@ internal sealed class ResolvePlan
 
     private readonly PlanNode? _root;
 
-    public ResolvePlan(PlanNode? root) => _root = root;
+    public ResolvePlan(PlanNode? root, int nodeCount = 0)
+    {
+        _root = root;
+        NodeCount = nodeCount;
+    }
+
+    /// <summary>How many steps the recipe holds. A service many others share is one step, however many paths lead to it.</summary>
+    public int NodeCount { get; }
 
     public bool IsUsable => _root is not null;
 

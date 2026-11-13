@@ -5,7 +5,7 @@ layout: landing
 ---
 <section class="mx-hero">
 <div class="mx-hero-copy">
-<span class="mx-pill">.NET 8, 9 and 10 &middot; MIT licensed</span>
+<span class="mx-pill">.NET 8, 9, 10 and 11 &middot; MIT licensed</span>
 <h1 class="mx-title">Know what is wrong before your users do.</h1>
 <p class="mx-lead">Maxen.DI checks your wiring while you type, at startup and in CI. Then it resolves quickly and stays open to change.</p>
 <div class="mx-install"><span>$</span>dotnet add package Maxen.DI</div>
@@ -32,9 +32,9 @@ builder.<span class="hljs-keyword">Register</span>&lt;<span class="hljs-type">Re
 </div>
 </section>
 <div class="mx-facts">
-<div class="mx-fact"><strong>3</strong><span>target frameworks</span></div>
+<div class="mx-fact"><strong>4</strong><span>target frameworks</span></div>
 <div class="mx-fact"><strong>4</strong><span>NuGet packages</span></div>
-<div class="mx-fact"><strong>9</strong><span>analyzer diagnostics</span></div>
+<div class="mx-fact"><strong>10</strong><span>analyzer diagnostics</span></div>
 <div class="mx-fact"><strong>143</strong><span>conformance tests passing</span></div>
 </div>
 <section class="mx-section">
@@ -54,7 +54,7 @@ builder.<span class="hljs-keyword">Register</span>&lt;<span class="hljs-type">Re
 <a class="mx-feature" href="docs/aspnetcore.md"><div class="mx-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></div><h3>Plays well with .NET</h3><p>Runs behind Microsoft.Extensions.DependencyInjection, the Generic Host and ASP.NET Core, and passes Microsoft's own conformance suite.</p></a>
 <a class="mx-feature" href="docs/comparison.md"><div class="mx-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18l5-6 4 3 7-9"/><path d="M4 21h16"/></svg></div><h3>Honest about speed</h3><p>A singleton resolves in about 20 ns. Microsoft's container is faster in places, and the comparison page says where.</p></a>
 <a class="mx-feature" href="https://github.com/pfimax/maxen.di/tree/main/samples"><div class="mx-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5l-5 7 5 7M16 5l5 7-5 7"/></svg></div><h3>A sample for every feature</h3><p>Runnable examples for lifetimes, decorators, profiles, the generator, the Generic Host, ASP.NET Core and OpenTelemetry.</p></a>
-<a class="mx-feature" href="docs/diagnostics.md"><div class="mx-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div><h3>Every warning explained</h3><p>MAXEN001 to MAXEN009: what each one means and how to fix it.</p></a>
+<a class="mx-feature" href="docs/diagnostics.md"><div class="mx-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div><h3>Every warning explained</h3><p>MAXEN001 to MAXEN010: what each one means and how to fix it.</p></a>
 </div>
 </section>
 <section class="mx-section">

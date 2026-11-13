@@ -25,7 +25,21 @@ internal sealed class DiagnosticsReport
     public int StatusCode { get; }
 
     public static DiagnosticsReport For(Container container)
-        => Reports.GetValue(container, c => new Lazy<DiagnosticsReport>(() => Build(c))).Value;
+    {
+        var report = Reports.GetValue(container, c => new Lazy<DiagnosticsReport>(() => Build(c)));
+        try
+        {
+            return report.Value;
+        }
+        catch
+        {
+            // A Lazy remembers the exception and would throw it again on every later request, so one bad moment
+            // (a registration source that failed once, say) would keep a readiness probe failing until a restart.
+            // Forget it, so the next request works the answer out afresh.
+            Reports.Remove(container);
+            throw;
+        }
+    }
 
     private static DiagnosticsReport Build(Container container)
     {

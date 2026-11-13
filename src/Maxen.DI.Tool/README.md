@@ -1,6 +1,6 @@
 # Maxen.DI.Tool
 
-[![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Tool?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Tool) ![.NET 8, 9, 10](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Tool?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Tool) ![.NET 8, 9, 10, 11](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010%20%7C%2011-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
 
 `maxen-di` looks at the [Maxen.DI](https://www.nuget.org/packages/Maxen.DI) registrations in a built assembly without
 running your application. It prints the dependency graph, checks it for missing services, loops and lifetime mistakes,
@@ -66,6 +66,9 @@ builder.UseMaxenDI(c => c.RegisterModule(new BillingModule()));
 ```
 
 When a pull request changes the graph on purpose, run `snapshot` again and commit the new file with the change.
+
+The tool carries its own copy of Maxen.DI. If your assembly was built with a different version, it says so on standard
+error and names the command that installs the matching tool.
 
 Exit codes: 0 for success, 1 when the answer is "no" (problems found, the graph changed, nothing matched), and 2 when
 the tool couldn't do its job (bad arguments, a missing file, or the assembly's own code failing to load).

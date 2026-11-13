@@ -61,6 +61,18 @@ builder.Use(MiddlewarePhase.PreLifetime, (ctx, next) =>
 | Watching resolves | `IResolutionObserver` | `Observe` |
 | Reusable setup | `IContainerModule` | `RegisterModule` |
 
+A factory registration is a closed box to validation and the dependency graph. If you write factories, or generate
+registrations with a tool of your own, say what each one resolves and it is checked like a constructor:
+
+```csharp
+builder.RegisterFactory<IGreeter>(
+        ctx => new Greeter(ctx.Resolve<IClock>()))
+    .WithMetadata(ServiceMetadata.Dependencies,
+        new[] { ServiceKey.For<IClock>() });
+```
+
+Use `ServiceMetadata.SameKey` as the key of an entry to mean "the key this registration has itself".
+
 Adding a custom `IParameterResolver` switches the container from its fastest construction path to the general
 one, because your resolver might claim any parameter. That costs some speed per construction; it is still correct.
 
@@ -76,6 +88,9 @@ every push. It also publishes cleanly with the IL trimmer.
 
 The source generator also writes constructor calls for the types you register in code and stores them in
 `GeneratedActivators`. The container prefers them over compiled expression trees, which matters most on native AOT.
+Without one, a constructor is called through reflection at first and gets a compiled call, made on a background
+thread, after its second use; [the source generator](source-generator.md#generated-activators-for-types-registered-in-code)
+has the details.
 If you generate code with your own tool, you can add activators the same way:
 
 ```csharp

@@ -27,7 +27,8 @@ You point the tool at a compiled assembly, usually from `bin/`. It then:
 
 Point it at the build output folder rather than `obj/`, so the `.deps.json` and the referenced assemblies are next to
 the DLL. The tool uses its own copy of Maxen.DI instead of the one in your output folder, so keep the tool's version in
-step with the `Maxen.DI` package your project uses.
+step with the `Maxen.DI` package your project uses. When they differ, the tool says so on standard error, with the
+command that installs the matching version, and carries on.
 
 ### What the tool can't see
 
@@ -64,9 +65,9 @@ builder.DefineProfile("Inspection", p =>
 
 Then run the tool with `--profile Inspection`.
 
-Two more things the graph can't show: the dependencies of factory and instance registrations, because the tool can't
-look inside a factory, and that includes the registrations the [source generator](source-generator.md) writes for
-`[Service]` classes.
+One more thing the graph can't show: the dependencies of factory and instance registrations, because the tool can't
+look inside a factory. The exception is a factory that says what it resolves (`ServiceMetadata.Dependencies`), which
+the registrations the [source generator](source-generator.md) writes for `[Service]` classes all do.
 
 ### Profiles
 

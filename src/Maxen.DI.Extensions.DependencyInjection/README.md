@@ -1,6 +1,6 @@
 # Maxen.DI.Extensions.DependencyInjection
 
-[![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Extensions.DependencyInjection?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Extensions.DependencyInjection) ![.NET 8, 9, 10](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/Maxen.DI.Extensions.DependencyInjection?label=NuGet&color=067a4f)](https://www.nuget.org/packages/Maxen.DI.Extensions.DependencyInjection) ![.NET 8, 9, 10, 11](https://img.shields.io/badge/.NET-8%20%7C%209%20%7C%2010%20%7C%2011-512bd4) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pfimax/maxen.di/blob/main/LICENSE)
 
 Run [Maxen.DI](https://www.nuget.org/packages/Maxen.DI) as the container behind `Microsoft.Extensions.DependencyInjection`
 and the Generic Host. Everything you register with `AddSingleton`, `AddScoped` and `AddTransient` keeps working, and you

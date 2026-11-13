@@ -2,7 +2,7 @@
 
   <!-- Shared settings for every project in the solution. -->
   <PropertyGroup>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>pfimax</Authors>
     <Company>pfimax</Company>
     <Copyright>Copyright (c) pfimax</Copyright>
@@ -24,6 +24,18 @@
     <!-- Only the projects that are meant to ship opt in to packing. -->
     <IsPackable>false</IsPackable>
     <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!--
+    A clean build has no warnings (see CONTRIBUTING.md). CI and release builds pass ContinuousIntegrationBuild=true, and
+    there a warning fails the build, so the rule doesn't rest on someone noticing. Local builds stay lenient, so a warning
+    doesn't get in the way while you are in the middle of something.
+    NuGet's vulnerability notices (NU1901 to NU1904) are left as warnings: they appear when an advisory is published, not
+    when the code changes, and shouldn't turn an unrelated pull request red.
+  -->
+  <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
   </PropertyGroup>
 
 </Project>

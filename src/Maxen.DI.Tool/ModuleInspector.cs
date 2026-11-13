@@ -27,6 +27,10 @@ internal static class ModuleInspector
                 var assembly = context.LoadFromAssemblyPath(path);
                 assemblyName = assembly.GetName().Name ?? path;
 
+                var built = assembly.GetReferencedAssemblies().FirstOrDefault(r => r.Name == "Maxen.DI")?.Version;
+                var note = VersionNote(assemblyName, built, typeof(Container).Assembly.GetName().Version);
+                if (note is not null) error.WriteLine(note);
+
                 var builder = new ContainerBuilder();
                 builder.RegisterModules(assembly);
                 foreach (var profile in profiles) builder.UseProfile(profile);
@@ -67,6 +71,20 @@ internal static class ModuleInspector
         {
             context.Unload();
         }
+    }
+
+    /// <summary>
+    /// The inspected assembly runs against the tool's copy of Maxen.DI, not the one it was built with. When those are
+    /// different versions the results can be off, or loading can fail in ways that don't point at the cause, so say so
+    /// up front. Returns null when the versions match or the assembly doesn't reference Maxen.DI at all.
+    /// </summary>
+    internal static string? VersionNote(string assemblyName, Version? built, Version? tool)
+    {
+        if (built is null || tool is null) return null;
+        if (built.Major == tool.Major && built.Minor == tool.Minor && built.Build == tool.Build) return null;
+
+        return $"Warning: '{assemblyName}' was built with Maxen.DI {built.ToString(3)}, but this tool uses {tool.ToString(3)}. " +
+            $"If the results look wrong, install the matching tool: dotnet tool update -g Maxen.DI.Tool --version {built.ToString(3)}";
     }
 
     private static bool IsLoadFailure(Exception ex)

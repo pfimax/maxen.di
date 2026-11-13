@@ -266,7 +266,8 @@ What a child does:
 - `ResolveAll` returns the parent's registrations first, then the child's.
 - Singletons that belong to the parent are shared, so the child hands out the same instances.
 - It inherits the parent's middleware, decorators, registration sources, parameter resolvers, initializers and
-  constructor selector. Of the options, `ValidateScopes` and `ValidateOnBuild` are copied. Profiles are not inherited.
+  constructor selector. Every option starts as the parent has it, and the child's setup can change any of them
+  (`c.Options.ValidateOnBuild = false`). Profiles are not inherited.
 
 A service the parent registers is still built by the parent, with the parent's registrations. If the child replaces
 `IClock`, a parent-registered service that takes an `IClock` keeps getting the parent's one, and decorators or

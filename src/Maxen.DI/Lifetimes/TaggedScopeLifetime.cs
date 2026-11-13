@@ -13,6 +13,9 @@ public sealed class TaggedScopeLifetime : Lifetime
     /// <summary>Creates a lifetime tied to scopes carrying the given label.</summary>
     public TaggedScopeLifetime(object tag) => _tag = tag ?? throw new ArgumentNullException(nameof(tag));
 
+    /// <summary>The label a scope must carry to own instances with this lifetime.</summary>
+    internal object Tag => _tag;
+
     /// <inheritdoc/>
     public override string Name => $"ScopedTo({_tag})";
 

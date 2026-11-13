@@ -20,6 +20,24 @@ internal sealed class ValidationSample : ISample
         foreach (var issue in container.Validate())
             Console.WriteLine("  " + issue);
 
+        // Two things validation would otherwise have to take on trust.
+        var wrapped = new ContainerBuilder();
+
+        // A decorator is built together with the service it wraps, so what it needs is checked as that service's own.
+        // CachedUserDirectory takes a Database, which nobody registered.
+        wrapped.Register<IUserDirectory, UserDirectory>();
+        wrapped.Decorate<IUserDirectory, CachedUserDirectory>();
+
+        // A factory is a closed box, unless it says what it resolves. This one resolves a CurrentUser that isn't there.
+        wrapped.RegisterFactory<AuditLog>(ctx => new AuditLog(ctx.Resolve<CurrentUser>()))
+            .WithMetadata(ServiceMetadata.Dependencies, new[] { ServiceKey.For<CurrentUser>() });
+
+        using (var checkedContainer = wrapped.Build())
+        {
+            foreach (var issue in checkedContainer.Validate())
+                Console.WriteLine("  " + issue);
+        }
+
         // ValidateOnBuild makes Build() itself refuse a broken setup, which is handy at startup.
         var strict = new ContainerBuilder();
         strict.Options.ValidateOnBuild = true;

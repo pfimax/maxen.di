@@ -62,6 +62,26 @@ public class DiagnosticCodeFixTests
     }
 
     [Fact]
+    public async Task A_scoped_service_resolved_from_the_root_gets_the_same_fix()
+    {
+        var fixedSource = await CaptiveLifetimeCodeFixTests.ApplyFix("""
+            using Maxen.DI;
+            public class Session { }
+            public static class Setup
+            {
+                public static void Run(ContainerBuilder builder, Container container)
+                {
+                    builder.Register<Session>().AsScoped();
+                    var session = container.Resolve<Session>();
+                }
+            }
+            """, "MAXEN010", provider: new RootResolveCodeFix());
+
+        Assert.Contains("using var scope = container.CreateScope();", fixedSource);
+        Assert.Contains("var session = scope.Resolve<Session>();", fixedSource);
+    }
+
+    [Fact]
     public async Task The_scope_name_avoids_names_already_in_use()
     {
         var fixedSource = await CaptiveLifetimeCodeFixTests.ApplyFix("""

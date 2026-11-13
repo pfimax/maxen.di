@@ -64,6 +64,8 @@ Cannot resolve scoped service 'IDbSession' from the root container.
 Create a scope first. Path: IDbSession
 ```
 
+Analyzer `MAXEN010` points at such a call while you type.
+
 You don't have to wait until a service is resolved to find out. `builder.Options.ValidateOnBuild = true` checks the
 whole graph in `Build()`, and the analyzers `MAXEN004` and `MAXEN005` warn while you type. See
 [Validation and diagnostics](validation-and-diagnostics.md) and [Diagnostics](diagnostics.md).
@@ -164,7 +166,9 @@ Who counts as "what it built":
 The container does not dispose objects passed to `RegisterInstance`, or anything from a registration marked
 `ExternallyOwned()`. You created those, or someone else owns them, so disposing them is up to you.
 
-Resolving anything scoped from a scope that has been disposed throws an `ObjectDisposedException`.
+A disposed scope is finished. Resolving anything from it, or creating a scope from it, throws an
+`ObjectDisposedException`, whatever the lifetime of the service. That includes a `Lazy<T>` or `Func<T>` that was
+resolved from the scope and is used after it ended. The same goes for the container once it is disposed.
 
 ### Synchronous and asynchronous disposal
 
@@ -195,8 +199,7 @@ builder.Options.DisposeChildScopes = true;
 ```
 
 Then disposing a scope, or the container, first disposes every scope created from it that is still alive, newest
-first, and then its own instances. A scope that was already disposed on its own is not disposed twice. Creating a
-scope from a disposed scope throws an `ObjectDisposedException` while this option is on.
+first, and then its own instances. A scope that was already disposed on its own is not disposed twice.
 
 See the [Disposal sample](https://github.com/pfimax/maxen.di/tree/main/samples/Maxen.DI.Samples.Features/Disposal).
 

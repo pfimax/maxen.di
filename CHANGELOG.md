@@ -7,6 +7,79 @@ triggers a release (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 Nothing yet. Add your entry here in the pull request that changes behaviour.
 
+## 1.2.0 (2026-11-14)
+
+### Added
+- .NET 11. All four packages now target net8.0, net9.0, net10.0 and net11.0, and the tests and Microsoft's conformance
+  suite run on all four (143 conformance tests on .NET 10 and 11, 139 on .NET 8 and 9).
+- More benchmarks: starting up, a graph of shared services (first resolve and `Validate()`), a decorated service,
+  collections and keyed services, with Microsoft and Autofac rows where they have the feature. The figures in the
+  README and on the comparison page were re-measured on one machine with full runs.
+- `Validate()` checks decorators. What a decorator's constructor needs is treated as belonging to the service it wraps,
+  so a decorator with an unregistered dependency is a `MissingDependency`, and a decorator on a singleton that takes a
+  scoped service is a `LifetimeMismatch`. Before, both passed validation and failed on the first resolve. The drawn
+  graph and saved snapshots are unchanged: they still show services only.
+- Validation, the dependency graph and `maxen-di` now see what `[Service]` classes need. The source generator writes
+  what each generated registration resolves onto it (`ServiceMetadata.Dependencies`), and it is checked like a
+  constructor. You can add the same entry to a factory of your own with `WithMetadata`. Rebuild your project to get it.
+  Graphs and snapshots of projects that use `[Service]` gain the edges that were missing, so `maxen-di diff` against an
+  old snapshot will list them once.
+- Analyzer `MAXEN010`: a scoped service resolved from the root container, which throws at run time. It has the same
+  quick fix as `MAXEN007` (resolve from a new scope), and stays quiet when the project switches `ValidateScopes` off.
+- `MAXEN005` follows transients: a singleton that reaches a scoped service through one or more transients is reported,
+  with the transients named in the message.
+- `maxen-di` warns on standard error when the inspected assembly was built with a different version of `Maxen.DI` than
+  the tool carries, and names the command that installs the matching tool.
+- Builds with `-p:ContinuousIntegrationBuild=true` (CI and releases) treat warnings as errors, and packing a library
+  checks its public API against the last release, so an accidental breaking change fails the build.
+
+### Changed
+- A disposed scope or container now refuses every request with `ObjectDisposedException`: resolving any service,
+  `ResolveAll`, `TryResolve`, `GetService`, and creating a scope from it. Before, only lookups that reached the scope's
+  own instances threw, so a transient with nothing to dispose, or a singleton that already existed, was still handed
+  out. A `Lazy<T>` or `Func<T>` used after its scope ended now throws too.
+- A child container starts with all of its parent's options. Before, only `ValidateScopes` and `ValidateOnBuild` were
+  copied and `ValidateFactories`, `UseResolvePlans` and `DisposeChildScopes` went back to their defaults. Set an option
+  in the `CreateChild` callback if the child should differ.
+- Starting up is much faster. The container used to compile a call for every constructor the first time it was used,
+  which costs far more than running the constructor, and most services (singletons above all) are built too rarely
+  to earn it back. A constructor is now called through reflection at first and gets its compiled call on a background
+  thread after its second use, so nothing waits for compiling. Steady-state speed is unchanged, and both ways build the
+  same object and throw the same exceptions.
+- The analyzers now tell containers apart. A builder created with `var builder = new ContainerBuilder();` and only used
+  for calls on it is checked against its own registrations. Before, every registration in a project was treated as one
+  container, so a service registered on one builder hid a missing registration on another (`MAXEN006`), and a lifetime
+  from one builder could raise `MAXEN005` or `MAXEN009` on another. A call the analyzer can't follow now switches
+  `MAXEN006` off for the builder it is made on, not for such a builder elsewhere in the project, so you may see new,
+  correct `MAXEN006` warnings in projects that build several containers, test projects especially. Registrations made
+  on a parameter, a field or a builder that is passed around are checked as before.
+
+### Fixed
+- `MAXEN006` reported a service as unregistered although it was registered by `RegisterAssemblyTypes`, `Populate`,
+  `TryRegister`, `RegisterFactory(typeof(IFoo), ...)`, `RegisterInstance(typeof(IFoo), ...)`, `AlsoAs(typeof(IFoo))`,
+  `Add(descriptor)`, a module's `Configure(builder)` called directly, or a helper method in another project that takes
+  the builder. `TryRegister` now counts as a registration; the others switch the check off, as scanning already did.
+- `MapMaxenDiagnostics()` remembered a failure. If working out the report threw once, every later request got the same
+  exception until the app restarted. Only a finished report is kept now, and the next request tries again.
+- Two scopes resolving a pooled service for the first time at the same moment could each create a pool. The spare was
+  never used but stayed with the container until it was disposed. Only one pool is created now.
+- With `ValidateFactories` on, a factory registered with `AsScopedTo("request")`, or one that resolved such a service,
+  was reported as `FactoryFailed` because validation ran it outside any labelled scope. Factories now run inside a
+  scope for every label in use.
+- When `ValidateOnBuild` failed, singletons that `ValidateFactories` had already built were never disposed, because the
+  container holding them was thrown away. `Build()` now disposes the container before it throws.
+- Resolving a service for the first time could take seconds and hundreds of megabytes when the services below it were
+  shared by many others. The resolve plan held a shared service once for every path that led to it, so it doubled with
+  each level of such a graph. A shared service is now planned once. Where that isn't possible, because a factory sits
+  below it and a factory is told who is asking, a plan that passes 2,000 steps is dropped and the service is built the
+  normal way, with the same result.
+- `Validate()` had the same problem: its lifetime check walked everything below a shared service again for every path
+  that reached it, so `ValidateOnBuild`, `maxen-di validate` and the first call to `MapMaxenDiagnostics()` could take
+  seconds or never finish on a deep graph. It now walks below a service again only for a singleton (or other
+  restrictive service) that has not been above it before. The issues it reports, and their order, are unchanged. One
+  exception: in a graph that also has a dependency loop, a lifetime mismatch that runs through the loop may only show
+  once the loop is fixed.
+
 ## 1.1.0 (2026-11-06)
 
 ### Added

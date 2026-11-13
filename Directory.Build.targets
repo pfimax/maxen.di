@@ -1,0 +1,19 @@
+<Project>
+
+  <!--
+    Checked when a library is packed: that its target frameworks agree with each other, and that nothing public was
+    removed or changed since the version named below, which would break code compiled against it. Versions follow
+    SemVer, so a break must be a decision and not an accident. If one is intended, bump the major version and add a
+    CompatibilitySuppressions.xml (dotnet pack -p:ApiCompatGenerateSuppressionFile=true writes it).
+
+    After each release, set PackageValidationBaselineVersion to the version just published.
+
+    This lives in a .targets file because IsPackable and PackAsTool are set by each project, after Directory.Build.props
+    has been read. The command line tool is left out: it is a program, not an API.
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(PackAsTool)' != 'true'">
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>1.1.0</PackageValidationBaselineVersion>
+  </PropertyGroup>
+
+</Project>
