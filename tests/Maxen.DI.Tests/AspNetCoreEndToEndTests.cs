@@ -171,6 +171,22 @@ public class AspNetCoreEndToEndTests
     }
 
     [Fact]
+    public async Task The_diagnostics_endpoint_tries_again_after_a_request_that_failed()
+    {
+        await WithApp(
+            b => b.Services.AddTransient<NeedsFlaky>(),
+            app => app.MapMaxenDiagnostics(),
+            async (client, _) =>
+            {
+                // The source throws the first time validation asks it, and works from then on. The failure must not
+                // be remembered, or a readiness probe would keep failing until the app restarts.
+                Assert.Equal(System.Net.HttpStatusCode.InternalServerError, (await client.GetAsync("/_maxen")).StatusCode);
+                Assert.Equal(System.Net.HttpStatusCode.OK, (await client.GetAsync("/_maxen")).StatusCode);
+            },
+            c => c.AddSource(new FlakySource()));
+    }
+
+    [Fact]
     public async Task Request_values_reach_services_built_by_the_container()
     {
         await WithApp(

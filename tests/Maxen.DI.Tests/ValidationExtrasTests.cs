@@ -63,6 +63,67 @@ public class ValidationExtrasTests
     }
 
     [Fact]
+    public void A_factory_scoped_to_a_label_is_run_inside_a_scope_with_that_label()
+    {
+        using var container = BuildWithFactoryChecks(b =>
+            b.RegisterFactory<IClock>(_ => new Clock()).AsScopedTo("request"));
+
+        Assert.Empty(container.Validate());
+    }
+
+    [Fact]
+    public void A_factory_may_ask_for_services_scoped_to_any_label_in_use()
+    {
+        // The factory itself is plainly scoped; what it resolves needs two different labelled scopes around it.
+        using var container = BuildWithFactoryChecks(b =>
+        {
+            b.Register<Clock>().AsScopedTo("request");
+            b.Register<Disposable>().AsScopedTo("tenant");
+            b.RegisterFactory<IClock>(ctx =>
+            {
+                ctx.Resolve<Disposable>();
+                return ctx.Resolve<Clock>();
+            }).AsScoped();
+        });
+
+        Assert.Empty(container.Validate());
+    }
+
+    [Fact]
+    public void What_factory_checks_build_in_labelled_scopes_is_disposed_with_them()
+    {
+        var disposed = 0;
+        using var container = BuildWithFactoryChecks(b =>
+            b.RegisterFactory<DisposeCounter>(_ => new DisposeCounter(() => disposed++)).AsScopedTo("request"));
+
+        Assert.Empty(container.Validate());
+        Assert.Equal(1, disposed);
+    }
+
+    [Fact]
+    public void A_build_that_fails_validation_disposes_what_validation_built()
+    {
+        // The first factory works and its singleton is created; the second fails the build. Nobody ever gets the
+        // container, so nobody else could dispose that singleton.
+        var created = 0;
+        var disposed = 0;
+        var builder = new ContainerBuilder();
+        builder.Options.ValidateOnBuild = true;
+        builder.Options.ValidateFactories = true;
+        builder.RegisterFactory<DisposeCounter>(_ =>
+        {
+            created++;
+            return new DisposeCounter(() => disposed++);
+        }).AsSingleton();
+        builder.RegisterFactory<IClock>(_ => throw new InvalidOperationException("no clock today"));
+
+        Assert.Throws<ContainerValidationException>(() => builder.Build());
+
+        Assert.Equal(1, created);
+        Assert.Equal(1, disposed);
+    }
+
+    [Fact]
     public void A_registration_limited_to_an_unregistered_consumer_is_reported()
     {
         using var container = TestContainer.Build(b =>

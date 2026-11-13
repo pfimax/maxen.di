@@ -74,7 +74,11 @@ public class ContainerValidationTests
     {
         var builder = new ContainerBuilder();
         builder.Options.ValidateOnBuild = true;
+
+        // Left broken on purpose (nothing registers IClock), which the analyzer rightly points out.
+#pragma warning disable MAXEN006
         builder.Register<IGreeter, Greeter>();
+#pragma warning restore MAXEN006
 
         var error = Assert.Throws<ContainerValidationException>(() => builder.Build());
 
