@@ -41,8 +41,12 @@ public sealed class ContainerBuilder
         _decorators.AddRange(inherited.Decorators);
         ConstructorSelector = inherited.ConstructorSelector;
 
+        // Every switch starts as the parent has it; the child's own setup can still change any of them.
         Options.ValidateScopes = parent.Options.ValidateScopes;
         Options.ValidateOnBuild = parent.Options.ValidateOnBuild;
+        Options.ValidateFactories = parent.Options.ValidateFactories;
+        Options.UseResolvePlans = parent.Options.UseResolvePlans;
+        Options.DisposeChildScopes = parent.Options.DisposeChildScopes;
     }
 
     /// <summary>The strictness switches the built container will use.</summary>
@@ -322,7 +326,21 @@ public sealed class ContainerBuilder
             _ => new PipelineBuilder(Options, factory, pre, post, decorators));
 
         if (Options.ValidateOnBuild)
-            container.EnsureValid();
+        {
+            try
+            {
+                container.EnsureValid();
+            }
+            catch
+            {
+                // The caller never receives this container, so nobody else can clean it up. With ValidateFactories on,
+                // validation may already have built singletons; dispose them here or they are never disposed.
+                // The validation error is what the caller needs to see, so a failure while cleaning up doesn't replace it.
+                try { container.Dispose(); }
+                catch (Exception) { }
+                throw;
+            }
+        }
 
         return container;
     }

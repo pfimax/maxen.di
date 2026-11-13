@@ -120,9 +120,12 @@ internal sealed class InstanceFactory
         return _plans.GetOrAdd(constructor, new ConstructorPlan(constructor));
     }
 
-    /// <summary>Picks the constructor that would be used, without calling it. Used for validation.</summary>
-    public ConstructorInfo Inspect([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ResolveContext context)
-        => SelectConstructor(type, new ParameterResolutionContext(context, null));
+    /// <summary>
+    /// Picks the constructor that would be used, without calling it. Used for validation. <paramref name="overrides"/>
+    /// names the parameter types the framework would fill in itself, as it does for a decorator's inner service.
+    /// </summary>
+    public ConstructorInfo Inspect([System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] Type type, ResolveContext context, IReadOnlyDictionary<Type, object>? overrides = null)
+        => SelectConstructor(type, new ParameterResolutionContext(context, overrides));
 
     public void Initialize(object instance, ResolveContext context)
     {

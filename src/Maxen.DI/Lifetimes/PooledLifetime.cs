@@ -42,14 +42,18 @@ public sealed class PooledLifetime : Lifetime
 
         return scope.Instances.GetOrCreate(context.Descriptor, () =>
         {
-            var pool = _pools.GetOrAdd(context.Descriptor, _ =>
+            if (!_pools.TryGetValue(context.Descriptor, out var pool))
             {
+                // Two scopes can get here together for the first time. Only one pool is kept, and only that one is
+                // handed to the container: tracking inside a GetOrAdd callback would also track the loser's, which
+                // nothing uses and nothing would release before the container itself is disposed.
                 var created = new InstancePool(_maxRetained);
+                pool = _pools.GetOrAdd(context.Descriptor, created);
 
                 // Idle instances live as long as the container does.
-                context.Container.Instances.Track(created);
-                return created;
-            });
+                if (ReferenceEquals(pool, created))
+                    context.Container.Instances.Track(created);
+            }
 
             var instance = pool.Rent() ?? next(context);
 
