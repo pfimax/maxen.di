@@ -1,5 +1,11 @@
 {
-  "SingletonMaxen": 20.52,
-  "ScopeGraphMaxen": 203.71,
-  "ScopedRepeatMaxen": 297.7
+    "SingletonMaxen":  12.91,
+    "ScopeGraphMaxen":  119.18,
+    "ScopedRepeatMaxen":  259.09,
+    "StartupMaxen":  3842.58,
+    "SharedFirstResolveMaxen":  27227.48,
+    "SharedValidateMaxen":  24416.81,
+    "DecoratedMaxen":  677.58,
+    "CollectionMaxen":  16.43,
+    "KeyedMaxen":  19.43
 }

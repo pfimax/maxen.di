@@ -99,4 +99,13 @@ public class ResolveBenchmarks
         for (var i = 0; i < 10; i++) last = scope.ServiceProvider.GetRequiredService<IBenchRepository>();
         return last!;
     }
+
+    [Benchmark(Description = "Scoped x10: Autofac")]
+    public object ScopedRepeatAutofac()
+    {
+        using var scope = _autofac.BeginLifetimeScope();
+        object? last = null;
+        for (var i = 0; i < 10; i++) last = scope.Resolve<IBenchRepository>();
+        return last!;
+    }
 }
